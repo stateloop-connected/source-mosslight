@@ -125,6 +125,23 @@ export const scoreFor = (g) =>
       (g.status === "won" ? 1200 : 0),
   );
 export const xpFor = (level) => 8 + level * 5;
+export function upgradePreview(id, game) {
+  const s = game.stats,
+    level = game.build[id] || 0;
+  const number = (n) => Number(n.toFixed(1));
+  return (
+    {
+      power: `伤害 ${number(s.damage)} → ${number(s.damage * 1.3)}`,
+      haste: `每秒 ${number(1 / s.interval)} → ${number(1 / (s.interval * 0.82))} 发`,
+      multi: `每次 ${s.bolts} → ${s.bolts + 1} 枚`,
+      speed: `移速 ${Math.round(s.speed)} → ${Math.round(s.speed * 1.16)}`,
+      magnet: `吸引 ${Math.round(s.magnet)} → ${Math.round(s.magnet * 1.5)}`,
+      vitality: `生命上限 ${s.maxHp} → ${s.maxHp + 20}`,
+      orbit: `叶环伤害 ${level * 10} → ${(level + 1) * 10}`,
+      dash: `冷却 ${number(s.dashCooldown)} → ${number(s.dashCooldown * 0.8)} 秒`,
+    }[id] || ""
+  );
+}
 
 export class Game {
   constructor({ mode = "night", seed = Date.now() } = {}) {
@@ -173,6 +190,37 @@ export class Game {
     this.bossDefeated = false;
     this.wave = 0;
     this.contactTimer = 0;
+    this.viewport = { width: 1120, height: 660 };
+    this.attackRange = 520;
+    this.dashSerial = 0;
+    this.dewSeeded = false;
+  }
+  setViewport(width, height) {
+    if (
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0
+    )
+      return;
+    this.viewport = {
+      width: clamp(width, 320, 1800),
+      height: clamp(height, 260, 1200),
+    };
+    this.attackRange = clamp(Math.min(width, height) * 0.5 + 32, 240, 520);
+  }
+  seedDew() {
+    if (this.dewSeeded) return;
+    this.dewSeeded = true;
+    for (let i = 0; i < 5; i++)
+      this.motes.push({
+        x: this.player.x + 90 + i * 34,
+        y: this.player.y - 20 + Math.sin(i * 0.85) * 20,
+        value: 3,
+        radius: 5,
+        life: this.rules.duration,
+        source: "dew",
+      });
   }
   emit(type, data = {}) {
     this.events.push({ type, ...data });
@@ -188,6 +236,7 @@ export class Game {
     const p = this.player;
     if (this.status !== "playing" || p.dashRemaining > 0) return false;
     p.dashTime = 0.19;
+    this.dashSerial++;
     p.dashRemaining = this.stats.dashCooldown;
     p.invincible = Math.max(p.invincible, 0.42);
     this.emit("dash", { x: p.x, y: p.y });
@@ -195,13 +244,31 @@ export class Game {
   }
   spawn(type) {
     const p = this.player,
-      angle = this.random() * Math.PI * 2;
-    // Spawn in a ring beyond the largest normal viewport, never on the player.
-    let x = clamp(p.x + Math.cos(angle) * 650, 30, WORLD.width - 30),
-      y = clamp(p.y + Math.sin(angle) * 650, 30, WORLD.height - 30);
-    if (Math.hypot(x - p.x, y - p.y) < 280) {
-      x = p.x < WORLD.width / 2 ? WORLD.width - 40 : 40;
-      y = clamp(p.y + (this.random() - 0.5) * 700, 40, WORLD.height - 40);
+      halfW = Math.max(280, this.viewport.width * 0.5 + 65),
+      halfH = Math.max(280, this.viewport.height * 0.5 + 65);
+    let x, y;
+    // Spawn just beyond this device's view, rejecting directions outside the map.
+    // The safety distance remains the same even when the player reaches a corner.
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const angle = this.random() * Math.PI * 2,
+        dx = Math.cos(angle),
+        dy = Math.sin(angle);
+      const reach = Math.min(
+        halfW / (Math.abs(dx) || 0.001),
+        halfH / (Math.abs(dy) || 0.001),
+      );
+      x = p.x + dx * reach;
+      y = p.y + dy * reach;
+      if (x >= 30 && x <= WORLD.width - 30 && y >= 30 && y <= WORLD.height - 30)
+        break;
+      x = null;
+    }
+    if (x === null) {
+      const dx = WORLD.width / 2 - p.x,
+        dy = WORLD.height / 2 - p.y,
+        d = Math.hypot(dx, dy) || 1;
+      x = clamp(p.x + (dx / d) * 400, 30, WORLD.width - 30);
+      y = clamp(p.y + (dy / d) * 400, 30, WORLD.height - 30);
     }
     const phase = this.elapsed / this.rules.duration;
     const config = {
@@ -244,6 +311,10 @@ export class Game {
       maxHp: c.hp,
       hit: 0,
       phase: this.random() * 6.28,
+      chargeCooldown: 3,
+      windup: 0,
+      chargeRemaining: 0,
+      charges: 0,
     };
     this.enemies.push(e);
     return e;
@@ -251,8 +322,11 @@ export class Game {
   shoot() {
     const p = this.player;
     const targets = this.enemies
-      .filter((e) => e.hp > 0 && distance(e, p) < 520)
-      .sort((a, b) => distance(a, p) - distance(b, p));
+      .map((e) => ({ e, d: (e.x - p.x) ** 2 + (e.y - p.y) ** 2 }))
+      .filter(({ e, d }) => e.hp > 0 && d < this.attackRange ** 2)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, this.stats.bolts)
+      .map(({ e }) => e);
     if (!targets.length) return;
     for (let i = 0; i < this.stats.bolts; i++) {
       const target = targets[i % targets.length];
@@ -350,12 +424,13 @@ export class Game {
       p.lastX = ix / Math.hypot(ix, iy);
       p.lastY = iy / Math.hypot(ix, iy);
     }
-    if (p.dashTime > 0) {
+    const dashing = p.dashTime > 0;
+    if (dashing) {
       ix = p.lastX;
       iy = p.lastY;
       p.dashTime = Math.max(0, p.dashTime - dt);
     }
-    const speed = this.stats.speed * (p.dashTime > 0 ? 4.5 : 1);
+    const speed = this.stats.speed * (dashing ? 4.5 : 1);
     p.x = clamp(p.x + ix * speed * dt, 25, WORLD.width - 25);
     p.y = clamp(p.y + iy * speed * dt, 25, WORLD.height - 25);
     const wave = Math.floor(this.elapsed / 30);
@@ -395,13 +470,49 @@ export class Game {
       const dx = p.x - e.x,
         dy = p.y - e.y,
         d = Math.hypot(dx, dy) || 1;
-      const speed =
+      let speed =
         e.speed *
         (e.type === "wisp"
           ? 1 + Math.sin(this.elapsed * 3 + e.phase) * 0.25
           : 1);
-      e.x += (dx / d) * speed * dt;
-      e.y += (dy / d) * speed * dt;
+      let charging = false;
+      if (e.type === "boss") {
+        e.chargeCooldown -= dt;
+        if (e.windup > 0) {
+          e.windup = Math.max(0, e.windup - dt);
+          speed = 0;
+          if (e.windup === 0) {
+            e.chargeRemaining = 0.6;
+            e.chargeCooldown = 6;
+          }
+        } else if (e.chargeRemaining > 0) {
+          charging = true;
+          e.chargeRemaining = Math.max(0, e.chargeRemaining - dt);
+          e.x = clamp(e.x + e.chargeX * 330 * dt, 35, WORLD.width - 35);
+          e.y = clamp(e.y + e.chargeY * 330 * dt, 35, WORLD.height - 35);
+        } else if (e.chargeCooldown <= 0) {
+          e.windup = 0.85;
+          e.chargeX = dx / d;
+          e.chargeY = dy / d;
+          speed = 0;
+          e.charges++;
+          this.emit("bossWarn", { first: e.charges === 1 });
+        }
+      }
+      if (!charging) {
+        e.x += (dx / d) * speed * dt;
+        e.y += (dy / d) * speed * dt;
+      }
+      if (
+        dashing &&
+        d < e.radius + p.radius + 22 &&
+        e.lastDash !== this.dashSerial
+      ) {
+        e.lastDash = this.dashSerial;
+        this.damageEnemy(e, this.stats.damage * 0.75);
+        e.x = clamp(e.x - (dx / d) * 72, 25, WORLD.width - 25);
+        e.y = clamp(e.y - (dy / d) * 72, 25, WORLD.height - 25);
+      }
       if (this.stats.orbit > 0 && this.orbitTimer <= 0 && d < 82 + e.radius)
         this.damageEnemy(e, this.stats.orbit);
       if (e.hp > 0 && d < e.radius + p.radius && p.invincible <= 0) {

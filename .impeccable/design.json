@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-21T07:56:21Z",
+  "generatedAt": "2026-11-21T09:30:35.373066+00:00",
   "title": "Design System: 苔光守夜 Mosslight",
   "extensions": {
     "colorMeta": {
@@ -226,6 +226,10 @@
       {
         "name": "landscape-max-height (orientation: landscape)",
         "value": "520px"
+      },
+      {
+        "name": "phone-play-max-width",
+        "value": "900px"
       }
     ]
   },
@@ -274,7 +278,7 @@
       "name": "能力标本",
       "kind": "card",
       "refersTo": "upgrade-card",
-      "description": "实际可选能力的按钮结构；片段使用已实现的轻叶步文案。",
+      "description": "能力标本含当前等级、说明与本局实际数值变化；手机三行布局。",
       "html": "<button class=\"ds-specimen\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M19 4C9 3 4 7 5 13s9 8 12 1c1-3 1-6 2-10Z\"/><path d=\"m4 21 9-11m-6 7-1-5m5 0 5-1\"/></svg><strong>轻叶步</strong><small>Lv. 1 / 3</small><p>移动速度增加 16%。</p><span class=\"ds-shortcut\">按 1 选择</span></button>",
       "css": ".ds-specimen{display:flex;flex-direction:column;align-items:center;min-height:205px;padding:22px 14px 17px;border:1px solid #66805b;border-radius:12px;background:#304c3c;color:var(--ink, #f0f0d9);font-family:var(--font, \"Microsoft YaHei UI\", \"PingFang SC\", \"Noto Sans SC\", sans-serif);line-height:1.65;text-align:center;cursor:pointer;transition:background .15s,transform .15s;}.ds-specimen:hover{background:#405d43;transform:translateY(-4px);}.ds-specimen:focus-visible{outline:2px solid var(--gold, #f0cc88);outline-offset:5px;}.ds-specimen svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex:none;width:35px;height:35px;stroke-width:1.2;color:var(--leaf, #d1e2a1);margin-bottom:18px;}.ds-specimen strong{font-size:16px;font-weight:500;}.ds-specimen small{font-size:11px;color:var(--gold, #f0cc88);margin-top:3px;}.ds-specimen p{font-size:11px;color:#cad8ba;line-height:1.8;margin:10px 0 0;}.ds-shortcut{font-size:11px;color:var(--muted, #b0c6b5);margin-top:auto;padding-top:15px;}.ds-specimen:disabled{cursor:default;opacity:.5;}@media(prefers-reduced-motion:reduce){.ds-specimen{transition:none;}.ds-specimen:hover{transform:none;}}"
     },
@@ -290,7 +294,7 @@
       "name": "生命与经验 HUD",
       "kind": "custom",
       "refersTo": "hud-health",
-      "description": "生命条配数值，经验条配等级；片段呈现一局开始时的真实初始值。",
+      "description": "三列游戏 HUD 的生命/经验栏，同时显示当前经验与升级所需经验；值不变时不重写 DOM。",
       "html": "<div class=\"ds-hud\"><div class=\"ds-health\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 20S2 14 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 6-10 12-10 12Z\"/></svg><span class=\"ds-bar\"><i></i></span><b>100</b></div><div class=\"ds-level\"><span>Lv. 1</span><span class=\"ds-bar ds-xp\"><i></i></span></div></div>",
       "css": ".ds-hud{min-width:190px;padding:10px 14px;border-radius:10px;background:#142d2be8;color:var(--ink, #f0f0d9);font-family:var(--font, \"Microsoft YaHei UI\", \"PingFang SC\", \"Noto Sans SC\", sans-serif);line-height:1.65;pointer-events:none;}.ds-health{display:flex;align-items:center;gap:10px;}.ds-health svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex:none;width:15px;height:15px;color:#e7aca0;fill:#e7aca026;}.ds-health b{font-size:11px;min-width:24px;text-align:right;font-variant-numeric:tabular-nums;}.ds-bar{display:block;height:5px;border-radius:5px;overflow:hidden;background:#6f896e40;}.ds-bar i{display:block;width:100%;height:100%;border-radius:inherit;background:var(--leaf, #d1e2a1);}.ds-health .ds-bar{width:110px;}.ds-health .ds-bar i{background:#e3ab95;}.ds-level{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:11px;color:var(--muted, #b0c6b5);}.ds-xp{flex:1;height:3px;}.ds-xp i{width:0;}"
     },
@@ -319,7 +323,8 @@
       "一处手写题字与平台中文无衬线组成明确的字体分工。",
       "叶色主要动作、淡金焦点与反馈、深绿界面底板。",
       "能力标本在桌面横排，在窄屏变为紧凑纵排。",
-      "图标为原创 SVG 线稿；场景与音效不依赖外部图片或音频。"
+      "图标为原创 SVG 线稿；场景与音效不依赖外部图片或音频。",
+      "v1.1：手机游玩时画面占用可用视口；经验显示当前值，能力显示本局数值变化，左半侧触屏拖动与固定摇杆共存。"
     ],
     "rules": [
       {

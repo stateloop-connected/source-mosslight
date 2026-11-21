@@ -3,6 +3,7 @@ export class Audio {
     this.enabled = false;
     this.context = null;
     this.lastShot = 0;
+    this.lastCollect = 0;
   }
   unlock() {
     if (!this.enabled) return;
@@ -31,6 +32,10 @@ export class Audio {
     g.connect(c.destination);
     o.start(t);
     o.stop(t + duration + 0.02);
+    o.onended = () => {
+      o.disconnect();
+      g.disconnect();
+    };
   }
   play(type) {
     if (!this.enabled) return;
@@ -42,7 +47,10 @@ export class Audio {
         }
         break;
       case "collect":
-        this.tone(1100, 0.08, 0.018);
+        if (performance.now() - this.lastCollect > 60) {
+          this.tone(1100, 0.08, 0.018);
+          this.lastCollect = performance.now();
+        }
         break;
       case "hurt":
         this.tone(120, 0.18, 0.045, "triangle");
@@ -58,6 +66,10 @@ export class Audio {
       case "end":
         for (let i = 0; i < 4; i++)
           this.tone([392, 523, 659, 784][i], 0.35, 0.035, "sine", i * 0.14);
+        break;
+      case "loss":
+        for (let i = 0; i < 3; i++)
+          this.tone([392, 330, 262][i], 0.3, 0.025, "sine", i * 0.15);
         break;
     }
   }

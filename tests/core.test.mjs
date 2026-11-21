@@ -10,8 +10,87 @@ import {
   xpFor,
   distance,
   scoreFor,
+  upgradePreview,
 } from "../src/core.js";
 import { loadRecord, saveRecord } from "../src/storage.js";
+
+test("opening dew teaches collection once and can fund the first upgrade", () => {
+  const g = new Game({ seed: 4 });
+  g.seedDew();
+  g.seedDew();
+  assert.equal(g.motes.length, 5);
+  for (let i = 0; i < 5; i++) {
+    const mote = g.motes[0];
+    g.player.x = mote.x;
+    g.player.y = mote.y;
+    g.update(0.01);
+  }
+  assert.equal(g.level, 2);
+  assert.equal(g.status, "choosing");
+  assert.equal(g.collected, 15);
+});
+test("mobile spawns respect the viewport perimeter and safety distance", () => {
+  const g = new Game({ seed: 47 });
+  g.setViewport(400, 800);
+  assert.equal(g.attackRange, 240);
+  for (let i = 0; i < 100; i++) {
+    const e = g.spawn("mite");
+    assert.ok(distance(e, g.player) >= 279.99);
+    assert.ok(Math.abs(e.x - g.player.x) <= 280.01);
+    assert.ok(Math.abs(e.y - g.player.y) <= 465.01);
+  }
+  g.player.x = 25;
+  g.player.y = 25;
+  for (let i = 0; i < 100; i++) {
+    const e = g.spawn("mite");
+    assert.ok(distance(e, g.player) >= 280);
+    assert.ok(e.x >= 30 && e.y >= 30);
+  }
+  g.setViewport(NaN, 0);
+  assert.equal(g.viewport.width, 400);
+});
+test("dash sweeps a nearby enemy once per dash and pushes it away", () => {
+  const g = new Game(),
+    e = g.spawn("beetle");
+  g.shotTimer = 10;
+  g.dash();
+  e.x = g.player.x + 30;
+  e.y = g.player.y;
+  const initial = e.hp;
+  g.update(0.01);
+  assert.equal(e.hp, initial - 12);
+  assert.ok(e.x > g.player.x + 50);
+  e.x = g.player.x + 30;
+  e.y = g.player.y;
+  g.update(0.01);
+  assert.equal(e.hp, initial - 12);
+});
+test("boss telegraphs a fixed route before charging, allowing a dodge", () => {
+  const g = new Game(),
+    e = g.spawn("boss");
+  g.shotTimer = 100;
+  e.x = g.player.x - 150;
+  e.y = g.player.y;
+  e.chargeCooldown = 0.01;
+  g.update(0.02);
+  assert.ok(e.windup > 0);
+  assert.equal(e.chargeRemaining, 0);
+  assert.equal(e.chargeY, 0);
+  const originalY = e.y;
+  g.player.y += 100;
+  for (let i = 0; i < 18; i++) g.update(0.05);
+  assert.ok(e.chargeRemaining > 0);
+  assert.equal(e.y, originalY);
+  assert.ok(e.x > g.player.x - 150);
+});
+test("upgrade preview reflects the current build instead of a generic claim", () => {
+  const g = new Game();
+  assert.match(upgradePreview("power", g), /16 → 20.8/);
+  g.stats.damage = 32;
+  assert.match(upgradePreview("power", g), /32 → 41.6/);
+  assert.match(upgradePreview("multi", g), /1 → 2/);
+  assert.equal(upgradePreview("unknown", g), "");
+});
 
 test("same seed yields the same random sequence", () => {
   const a = rng(7),

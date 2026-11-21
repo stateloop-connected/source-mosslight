@@ -4,22 +4,28 @@
 
 ## 状态
 
-| 项目 | 状态 |
-| --- | --- |
-| 本地游戏 | 已完成，源码与启动入口在项目根 |
-| 标准 / 练习、胜败、升级、触控 | 已实现并通过对应测试 |
-| 开源许可证 | MIT；标题字体单独 OFL 1.1 |
-| GitHub | main 已推送，公开；匿名 API 访问 HTTP 200 |
-| Gitee | main 已推送，公开；匿名 API 访问 HTTP 200 |
-| 在线试玩 | 已部署 GitHub Pages，HTTP 200，桌面与手机浏览器线上交互通过 |
-| GitHub CI | Linux / Chromium 的 Checks 成功 |
-| 独立复核 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制） |
+| 项目                          | 状态                                                             |
+| ----------------------------- | ---------------------------------------------------------------- |
+| 本地游戏                      | 已完成，源码与启动入口在项目根                                   |
+| 标准 / 练习、胜败、升级、触控 | 已实现并通过对应测试                                             |
+| 开源许可证                    | MIT；标题字体单独 OFL 1.1                                        |
+| GitHub                        | main 已推送，公开；匿名 API 访问 HTTP 200                        |
+| Gitee                         | main 已推送，公开；匿名 API 访问 HTTP 200                        |
+| 在线试玩                      | 已部署 GitHub Pages，HTTP 200，桌面与手机浏览器线上交互通过      |
+| GitHub CI                     | Linux / Chromium 的 Checks 成功                                  |
+| v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）  |
+| 本地改进                      | 1.1.0 本地 25 项逻辑/构建测试、23 项浏览器测试通过；准备同步两端 |
 
 ## 远端
 
 - GitHub：https://github.com/yunhanhai/mosslight
 - Gitee：https://gitee.com/yunhanhai/mosslight
 - 在线试玩：https://yunhanhai.github.io/mosslight/
+
+## v1.1.0
+
+- 在 1.0.0 之后的游戏手感、手机布局与 HUD 性能优化，完整记录在 CHANGELOG、GAME_DESIGN、TESTING 与 ARCHITECTURE。
+- 发布工作流仍从独立构建 `dist/` 部署；发布成功后填写此版提交、Actions 与线上版本验证链接。
 
 ## 首次发布验证
 

@@ -41,6 +41,7 @@ test("first view is responsive, self contained, and renders real art", async ({
   await page.screenshot({
     path: `.impeccable/review/${info.project.name}.png`,
     fullPage: true,
+    scale: "css",
   });
   expect(errors).toEqual([]);
 });
@@ -83,31 +84,125 @@ test("movement, dash and upgrade selection change the simulation", async ({
   ).toBeGreaterThan(0);
   await page.evaluate(async () => {
     const s = (await import("/src/main.js")).getSession();
-    s.game.addXp(13);
+    if (s.game.status === "playing") {
+      s.game.motes = [];
+      s.game.addXp(8 + s.game.level * 5 - s.game.xp);
+    }
   });
   await expect(page.locator(".upgrade-card")).toHaveCount(3);
-  await page.screenshot({
-    path: `.impeccable/review/${info.project.name}-upgrade.png`,
-    fullPage: true,
-  });
   await page.locator(".upgrade-card").first().click();
   expect((await session(page)).status).toBe("playing");
   await expect(page.locator("#equipped>span")).toHaveCount(1);
 });
+
+test("first upgrade is reachable by collecting opening dew without injected XP", async ({
+  page,
+}) => {
+  await page.locator("#start-button").click();
+  await page.keyboard.down("d");
+  await expect(page.locator(".upgrade-card")).toHaveCount(3, { timeout: 8000 });
+  await page.keyboard.up("d");
+  await expect(page.locator(".upgrade-effect").first()).toContainText("→");
+  const collected = await page.evaluate(
+    async () => (await import("/src/main.js")).getSession().game.collected,
+  );
+  expect(collected).toBeGreaterThanOrEqual(13);
+});
+
+test("short frames and slower frames preserve simulation time", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.queuedFrames = [];
+    window.requestAnimationFrame = (fn) => {
+      window.queuedFrames.push(fn);
+      return 1;
+    };
+  });
+  await page.reload();
+  await page.locator("#start-button").click();
+  const elapsed = await page.evaluate(async () => {
+    const now = performance.now();
+    for (const fn of window.queuedFrames.splice(0)) fn(now + 100);
+    return (await import("/src/main.js")).getSession().game.elapsed;
+  });
+  expect(elapsed).toBeGreaterThan(0.08);
+  expect(elapsed).toBeLessThan(0.13);
+});
+
+test("compact gameplay fills the screen and HUD columns stay separated", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "mobile");
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.locator("#start-button").click();
+  const boxes = await page.evaluate(() => {
+    const rect = (selector) => {
+      const r = document.querySelector(selector).getBoundingClientRect();
+      return {
+        left: r.left,
+        right: r.right,
+        bottom: r.bottom,
+        height: r.height,
+      };
+    };
+    return {
+      left: rect(".hud-left"),
+      timer: rect(".hud-time"),
+      right: rect(".hud-right"),
+      garden: rect("#garden"),
+      height: innerHeight,
+    };
+  });
+  expect(boxes.left.right).toBeLessThanOrEqual(boxes.timer.left);
+  expect(boxes.timer.right).toBeLessThanOrEqual(boxes.right.left);
+  expect(boxes.garden.bottom).toBeLessThanOrEqual(boxes.height);
+  expect(boxes.garden.height).toBeGreaterThan(600);
+  await expect(page.locator(".field-notes")).toBeHidden();
+});
+
+test("left-side touch drag moves and releasing it stops movement", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "mobile");
+  await page.locator("#start-button").tap();
+  const before = await session(page);
+  const stage = await page.locator("#game").boundingBox();
+  const cdp = await page.context().newCDPSession(page),
+    x = stage.x + 85,
+    y = stage.y + stage.height * 0.55;
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x, y, id: 7 }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: x + 30, y, id: 7 }],
+  });
+  await page.waitForTimeout(250);
+  expect((await session(page)).x).toBeGreaterThan(before.x + 8);
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  const stopped = await session(page);
+  await page.waitForTimeout(150);
+  expect(Math.abs((await session(page)).x - stopped.x)).toBeLessThan(4);
+  await cdp.detach();
+});
 test("victory persists once; restart and menu work", async ({ page }, info) => {
   await page.getByRole("button", { name: "进入花园" }).click();
   await page.evaluate(async () => {
-    const g = (await import("/src/main.js")).getSession().game;
-    g.elapsed = 179.99;
+    await new Promise(requestAnimationFrame);
+    const { getSession } = await import("/src/main.js");
+    const { game } = getSession();
+    game.elapsed = 179.9;
   });
+  await expect(page.locator("#timer")).toHaveText("00:00");
   await expect(
     page.getByRole("heading", { name: "天亮了，花园还在" }),
   ).toBeVisible();
   await expect(page.locator("#record-wins")).toHaveText("1");
-  await page.screenshot({
-    path: `.impeccable/review/${info.project.name}-result.png`,
-    fullPage: true,
-  });
   await page.getByRole("button", { name: "怎么玩" }).click();
   await page.getByRole("button", { name: "我知道了" }).click();
   await expect(page.locator("#record-wins")).toHaveText("1");
@@ -131,8 +226,10 @@ test("practice and sound preferences work without affecting standard wins", asyn
   );
   await page.getByRole("button", { name: "进入花园" }).click();
   await page.evaluate(async () => {
-    (await import("/src/main.js")).getSession().game.elapsed = 89.99;
+    await new Promise(requestAnimationFrame);
+    (await import("/src/main.js")).getSession().game.elapsed = 89.9;
   });
+  await expect(page.locator("#timer")).toHaveText("00:00");
   await expect(
     page.getByRole("heading", { name: "初次守望，完成了" }),
   ).toBeVisible();
@@ -155,12 +252,15 @@ test("unavailable storage still permits a complete game", async ({
   await page.screenshot({
     path: `.impeccable/review/${info.project.name}-storage-error.png`,
     fullPage: true,
+    scale: "css",
   });
   await expect(page.locator("#start-button")).toBeVisible();
   await page.getByRole("button", { name: "进入花园" }).click();
   await page.evaluate(async () => {
-    (await import("/src/main.js")).getSession().game.elapsed = 179.99;
+    await new Promise(requestAnimationFrame);
+    (await import("/src/main.js")).getSession().game.elapsed = 179.9;
   });
+  await expect(page.locator("#timer")).toHaveText("00:00");
   await expect(
     page.getByRole("heading", { name: "天亮了，花园还在" }),
   ).toBeVisible();
@@ -194,9 +294,7 @@ test("touch joystick and dash respond on a mobile viewport", async ({
   await page
     .locator("#joystick")
     .dispatchEvent("pointerup", { pointerId: 1, pointerType: "touch" });
-  await page
-    .locator("#dash-button")
-    .dispatchEvent("pointerdown", { pointerId: 2, pointerType: "touch" });
+  await page.locator("#dash-button").click();
   expect(
     await page.evaluate(
       async () =>

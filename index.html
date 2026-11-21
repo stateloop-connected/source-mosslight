@@ -100,7 +100,7 @@
           >
 
           <div class="hud" id="hud" hidden>
-            <div class="hud-left">
+            <div class="hud-left" id="hud-left">
               <div class="health">
                 <svg><use href="#i-heart" /></svg
                 ><span class="bar"><i id="hp-fill"></i></span
@@ -108,7 +108,8 @@
               </div>
               <div class="level-line">
                 <span id="level-text">Lv. 1</span
-                ><span class="bar xp"><i id="xp-fill"></i></span>
+                ><span class="bar xp"><i id="xp-fill"></i></span
+                ><span id="xp-text">0/13</span>
               </div>
             </div>
             <div class="hud-time">
@@ -128,7 +129,7 @@
             </div>
           </div>
           <div class="boss-hud" id="boss-hud" hidden>
-            <span>噬光巨蛾</span>
+            <span id="boss-name">噬光巨蛾</span>
             <div class="bar"><i id="boss-fill"></i></div>
           </div>
 
@@ -178,7 +179,7 @@
               <span id="joystick-knob"></span>
             </div>
             <button class="dash-button" id="dash-button" aria-label="冲刺">
-              <svg><use href="#i-bolt" /></svg><span>冲刺</span>
+              <svg><use href="#i-bolt" /></svg><span id="dash-label">冲刺</span>
             </button>
           </div>
           <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -221,7 +222,7 @@
       </main>
       <footer>
         <span>慢一点，微光会等你。</span
-        ><span>原创网页小游戏 <span class="footer-dot">·</span> v1.0.0</span>
+        ><span>原创网页小游戏 <span class="footer-dot">·</span> v1.1.0</span>
       </footer>
     </div>
     <noscript

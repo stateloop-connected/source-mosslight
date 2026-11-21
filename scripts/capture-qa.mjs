@@ -28,7 +28,7 @@ for (const v of [
   });
   await page.goto(process.env.GAME_URL || "http://127.0.0.1:4173");
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(1000);
   const checks = await page.evaluate(() => ({
     overflow: document.documentElement.scrollWidth > innerWidth,
     font: document.fonts.check("20px MossBrush"),
@@ -43,7 +43,9 @@ for (const v of [
   if (v.touch) await page.locator("#start-button").tap();
   else await page.locator("#start-button").click();
   await page.evaluate(async () => {
-    const { getSession } = await import("./src/main.js");
+    const { getSession } = await import(
+      document.querySelector('script[type="module"]').src
+    );
     const g = getSession().game;
     for (let i = 0; i < 1000 && g.status !== "lost"; i++) {
       if (g.status === "choosing") g.choose(g.choices[0]);
@@ -52,13 +54,49 @@ for (const v of [
     }
     g.pause();
   });
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(800);
   if (v.touch)
     checks.joystickVisible = await page.locator("#joystick").isVisible();
   await page.screenshot({
     path: `.impeccable/review/${v.name}-playing.png`,
     fullPage: true,
   });
+  if (v.name === "desktop" || v.name === "mobile") {
+    await page.evaluate(async () => {
+      const { getSession } = await import(
+        document.querySelector('script[type="module"]').src
+      );
+      const g = getSession().game;
+      g.resume();
+      g.motes = [];
+      if (g.status === "playing") g.addXp(8 + g.level * 5 - g.xp);
+    });
+    await page.locator(".upgrade-card").first().waitFor();
+    await page.screenshot({
+      path: `.impeccable/review/${v.name}-upgrade.png`,
+      fullPage: false,
+      scale: "css",
+    });
+    for (
+      let i = 0;
+      i < 8 && (await page.locator(".upgrade-card").first().isVisible());
+      i++
+    )
+      await page.locator(".upgrade-card").first().click();
+    await page.evaluate(async () => {
+      const { getSession } = await import(
+        document.querySelector('script[type="module"]').src
+      );
+      const g = getSession().game;
+      g.elapsed = g.rules.duration - 0.01;
+    });
+    await page.getByRole("button", { name: "再守一夜" }).waitFor();
+    await page.screenshot({
+      path: `.impeccable/review/${v.name}-result.png`,
+      fullPage: false,
+      scale: "css",
+    });
+  }
   results.push({ viewport: v, checks, errors });
   await context.close();
 }

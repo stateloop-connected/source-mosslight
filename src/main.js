@@ -1,4 +1,12 @@
-import { Game, UPGRADES, clamp, timeText, scoreFor, xpFor } from "./core.js";
+import {
+  Game,
+  UPGRADES,
+  clamp,
+  timeText,
+  scoreFor,
+  xpFor,
+  upgradePreview,
+} from "./core.js";
 import { Renderer } from "./renderer.js";
 import { loadRecord, saveRecord } from "./storage.js";
 import { Audio } from "./audio.js";
@@ -9,8 +17,26 @@ document.documentElement.classList.toggle(
   navigator.maxTouchPoints > 0 || matchMedia("(pointer: coarse)").matches,
 );
 
-const $ = (id) => document.getElementById(id),
-  canvas = $("game"),
+const elements = new Map();
+const $ = (id) => {
+  if (!elements.has(id)) elements.set(id, document.getElementById(id));
+  return elements.get(id);
+};
+const text = (id, value) => {
+  const node = $(id),
+    next = String(value);
+  if (node.textContent !== next) node.textContent = next;
+};
+const fill = (id, percentage) => {
+  const next = `${Number(clamp(percentage, 0, 100).toFixed(1))}%`;
+  if ($(id).style.width !== next) $(id).style.width = next;
+};
+const attr = (id, name, value) => {
+  const node = $(id),
+    next = String(value);
+  if (node.getAttribute(name) !== next) node.setAttribute(name, next);
+};
+const canvas = $("game"),
   renderer = new Renderer(canvas),
   audio = new Audio();
 let loaded;
@@ -34,6 +60,13 @@ let storageAvailable = loaded.available,
   lastSaved = null,
   pointerId = null,
   gamepad = { x: 0, y: 0 };
+let accumulator = 0,
+  lastHUD = 0,
+  lastRender = 0,
+  lastRenderedScreen = "",
+  visualTime = 0,
+  renderDirty = true;
+let stickCenter = null;
 const keys = new Set();
 const preview = new Game({ seed: 84 });
 preview.player.x = 1130;
@@ -116,9 +149,15 @@ function toast(message) {
 }
 function resetInput() {
   keys.clear();
+  if (pointerId !== null && $("joystick").hasPointerCapture(pointerId))
+    $("joystick").releasePointerCapture(pointerId);
   pointerId = null;
+  stickCenter = null;
+  accumulator = 0;
   gamepad = { x: 0, y: 0 };
   $("joystick-knob").style.transform = "translate(0px,0px)";
+  $("joystick").style.transform = "";
+  $("joystick").classList.remove("dragging");
 }
 function hideDialog() {
   const restore = previousFocus;
@@ -138,6 +177,7 @@ function dialog(html) {
   );
 }
 function showGameUI(visible) {
+  document.body.classList.toggle("in-game", visible);
   for (const id of ["hud", "bottom-hud", "touch-controls"])
     $(id).hidden = !visible;
   $("menu-panel").hidden = visible;
@@ -154,10 +194,14 @@ function start() {
   resetInput();
   hideDialog();
   showGameUI(true);
+  syncViewport();
+  game.seedDew();
+  lastFrame = performance.now();
+  lastHUD = 0;
   updateBuild();
   canvas.focus({ preventScroll: true });
-  toast("收集金色微光来升级，萤火会自动攻击");
-  updateHUD();
+  toast("拾起身边的金色露光，选择第一份能力");
+  updateHUD(true);
 }
 function menu() {
   game = null;
@@ -180,6 +224,7 @@ function resume() {
   screen = "playing";
   hideDialog();
   resetInput();
+  lastFrame = performance.now();
   canvas.focus({ preventScroll: true });
 }
 function showPause() {
@@ -199,14 +244,13 @@ function showUpgrade() {
       .map((id, i) => {
         const u = UPGRADES.find((u) => u.id === id),
           level = (game.build[id] || 0) + 1;
-        return `<button class="upgrade-card" data-upgrade="${id}">${icon(u.icon)}<strong>${u.name}</strong><small>Lv. ${level} / ${u.max}</small><p>${u.desc}</p><span class="card-shortcut">按 ${i + 1} 选择</span></button>`;
+        return `<button class="upgrade-card" data-upgrade="${id}">${icon(u.icon)}<strong>${u.name}</strong><small>Lv. ${level} / ${u.max}</small><p>${u.desc}</p><span class="upgrade-effect">${upgradePreview(id, game)}</span><span class="card-shortcut">按 ${i + 1} 选择</span></button>`;
       })
       .join("")}</div>`,
   );
 }
 function choose(id) {
   if (!game?.choose(id)) return;
-  audio.play("upgrade");
   updateBuild();
   if (game.status === "choosing") showUpgrade();
   else {
@@ -240,7 +284,6 @@ function showResult() {
       if (won) record.wins++;
       save();
     }
-    audio.play("end");
   }
   const title = won
     ? practice
@@ -267,7 +310,7 @@ function help() {
   screen = "help";
   resetInput();
   dialog(
-    `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏拖动左下摇杆移动，点右侧按钮冲刺。冲刺期间短暂免伤，有冷却时间。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
+    `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏可拖动左下摇杆，也可在画面左半侧拖动。点右侧按钮冲刺，可短暂免伤并推开身边的虫影；冷却后可再次使用。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；巨蛾会先显示粉色路线，再向该方向俯冲；看到蓄力后横向躲开。存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
   );
 }
 function closeHelp() {
@@ -288,36 +331,48 @@ function closeHelp() {
     hideDialog();
   }
 }
-function updateHUD() {
+function updateHUD(force = false, now = performance.now()) {
   if (!game) return;
+  if (!force && now - lastHUD < 80) return;
+  lastHUD = now;
   const p = game.player,
     s = game.stats;
-  $("hp-fill").style.width = `${clamp((p.hp / s.maxHp) * 100, 0, 100)}%`;
-  $("hp-text").textContent = Math.ceil(p.hp);
-  $("level-text").textContent = `Lv. ${game.level}`;
-  $("xp-fill").style.width =
-    `${clamp((game.xp / xpFor(game.level)) * 100, 0, 100)}%`;
-  $("timer").textContent = timeText(
-    Math.ceil(game.rules.duration - game.elapsed),
+  fill("hp-fill", (p.hp / s.maxHp) * 100);
+  text("hp-text", Math.ceil(p.hp));
+  text("level-text", `Lv. ${game.level}`);
+  fill("xp-fill", (game.xp / xpFor(game.level)) * 100);
+  text("xp-text", `${game.xp}/${xpFor(game.level)}`);
+  text("timer", timeText(Math.ceil(game.rules.duration - game.elapsed)));
+  text(
+    "phase-text",
+    phases[Math.min(5, Math.floor((game.elapsed / game.rules.duration) * 6))],
   );
-  $("phase-text").textContent =
-    phases[Math.min(5, Math.floor((game.elapsed / game.rules.duration) * 6))];
-  $("kill-text").textContent = game.kills;
-  $("dash-fill").style.width =
-    `${(1 - p.dashRemaining / s.dashCooldown) * 100}%`;
-  $("dash-text").textContent =
+  text("kill-text", game.kills);
+  fill("dash-fill", (1 - p.dashRemaining / s.dashCooldown) * 100);
+  text(
+    "dash-text",
     p.dashRemaining > 0
       ? `冲刺 ${p.dashRemaining.toFixed(1)}s`
-      : "空格 · 冲刺就绪";
-  $("dash-button").disabled = p.dashRemaining > 0;
+      : "空格 · 冲刺就绪",
+  );
+  text(
+    "dash-label",
+    p.dashRemaining > 0 ? `${p.dashRemaining.toFixed(1)}s` : "冲刺",
+  );
+  const cooling = p.dashRemaining > 0;
+  if ($("dash-button").disabled !== cooling)
+    $("dash-button").disabled = cooling;
+  $("hud-left").classList.toggle("low-health", p.hp / s.maxHp <= 0.3);
   const boss = game.enemies.find((e) => e.type === "boss");
-  $("boss-hud").hidden = !boss;
-  if (boss)
-    $("boss-fill").style.width =
-      `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`;
-  $("hud").setAttribute(
+  if ($("boss-hud").hidden !== !boss) $("boss-hud").hidden = !boss;
+  if (boss) {
+    fill("boss-fill", (boss.hp / boss.maxHp) * 100);
+    text("boss-name", boss.windup > 0 ? "噬光巨蛾 · 即将俯冲" : "噬光巨蛾");
+  }
+  attr(
+    "hud",
     "aria-label",
-    `剩余 ${timeText(game.rules.duration - game.elapsed)}，生命 ${Math.ceil(p.hp)}，等级 ${game.level}`,
+    `剩余 ${timeText(Math.ceil(game.rules.duration - game.elapsed))}，生命 ${Math.ceil(p.hp)}/${s.maxHp}，等级 ${game.level}，经验 ${game.xp}/${xpFor(game.level)}`,
   );
 }
 
@@ -352,6 +407,7 @@ $("dialog").addEventListener("click", (e) => {
     abandon: showAbandon,
     finish: () => {
       game.status = "lost";
+      game.emit("end");
       showResult();
     },
     restart: start,
@@ -409,6 +465,9 @@ window.addEventListener("blur", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && screen === "playing") pause();
+  accumulator = 0;
+  lastFrame = performance.now();
+  renderDirty = true;
 });
 $("dash-button").addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -416,38 +475,76 @@ $("dash-button").addEventListener("pointerdown", (e) => {
 });
 const joystick = $("joystick");
 function joystickMove(e) {
-  if (e.pointerId !== pointerId) return;
-  const r = joystick.getBoundingClientRect(),
-    max = 32,
-    dx = e.clientX - r.left - r.width / 2,
-    dy = e.clientY - r.top - r.height / 2,
+  if (e.pointerId !== pointerId || !stickCenter) return;
+  const max = 32,
+    dx = e.clientX - stickCenter.x,
+    dy = e.clientY - stickCenter.y,
     len = Math.hypot(dx, dy),
     scale = len > max ? max / len : 1;
-  gamepad = { x: (dx * scale) / max, y: (dy * scale) / max };
+  const deadZone = len < 5;
+  gamepad = {
+    x: deadZone ? 0 : (dx * scale) / max,
+    y: deadZone ? 0 : (dy * scale) / max,
+  };
   $("joystick-knob").style.transform =
     `translate(${dx * scale}px,${dy * scale}px)`;
 }
-joystick.addEventListener("pointerdown", (e) => {
+function beginJoystick(e, floating = false) {
   if (screen !== "playing" || pointerId !== null) return;
   e.preventDefault();
+  const r = joystick.getBoundingClientRect();
+  if (floating) {
+    const stage = $("garden").getBoundingClientRect();
+    const x = clamp(
+        e.clientX,
+        stage.left + 65,
+        stage.left + stage.width * 0.5 - 10,
+      ),
+      y = clamp(e.clientY, stage.top + 150, stage.bottom - 65);
+    joystick.style.transform = `translate(${x - r.left - r.width / 2}px,${y - r.top - r.height / 2}px)`;
+    stickCenter = { x, y };
+  } else stickCenter = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   pointerId = e.pointerId;
   joystick.setPointerCapture(e.pointerId);
+  joystick.classList.add("dragging");
   joystickMove(e);
+}
+joystick.addEventListener("pointerdown", (e) => beginJoystick(e));
+canvas.addEventListener("pointerdown", (e) => {
+  const r = canvas.getBoundingClientRect();
+  if (
+    e.pointerType === "touch" &&
+    e.clientX < r.left + r.width * 0.5 &&
+    e.clientY > r.top + 120
+  )
+    beginJoystick(e, true);
 });
 joystick.addEventListener("pointermove", joystickMove);
 for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
   joystick.addEventListener(name, (e) => {
     if (e.pointerId === pointerId) {
       pointerId = null;
+      stickCenter = null;
       gamepad = { x: 0, y: 0 };
       $("joystick-knob").style.transform = "translate(0px,0px)";
+      joystick.style.transform = "";
+      joystick.classList.remove("dragging");
     }
   });
-new ResizeObserver(() => renderer.resize()).observe($("garden"));
+function syncViewport() {
+  renderer.resize();
+  if (game)
+    game.setViewport(
+      renderer.width / renderer.scale,
+      renderer.height / renderer.scale,
+    );
+  renderDirty = true;
+}
+new ResizeObserver(syncViewport).observe($("garden"));
 records();
 soundUI();
 function frame(now) {
-  const dt = Math.min((now - lastFrame) / 1000, 0.05);
+  const dt = Math.min((now - lastFrame) / 1000, 0.1);
   lastFrame = now;
   if (game) {
     if (screen === "playing") {
@@ -459,15 +556,21 @@ function frame(now) {
         (keys.has("s") || keys.has("arrowdown") ? 1 : 0) -
         (keys.has("w") || keys.has("arrowup") ? 1 : 0) +
         gamepad.y;
-      game.update(dt, { x, y });
+      accumulator += dt;
+      while (accumulator >= 1 / 60 && game.status === "playing") {
+        game.update(1 / 60, { x, y });
+        accumulator -= 1 / 60;
+      }
       if (game.status === "choosing") showUpgrade();
       else if (["won", "lost"].includes(game.status)) showResult();
     }
     for (const e of game.events.splice(0)) {
       renderer.event(e);
-      audio.play(e.type);
+      audio.play(e.type === "end" && game.status === "lost" ? "loss" : e.type);
       if (e.type === "boss") toast("噬光巨蛾出现了，保持移动");
       if (e.type === "bossDown") toast("巨蛾散去，微光正在回到花园");
+      if (e.type === "bossWarn" && e.first)
+        toast("巨蛾正在蓄力，离开粉色俯冲路线");
       if (e.type === "wave")
         toast(
           [
@@ -480,10 +583,28 @@ function frame(now) {
           ][e.wave] || "黎明快到了",
         );
     }
-    updateHUD();
+    updateHUD(false, now);
   }
-  renderer.draw(game || preview, dt, now / 1000, !game);
-  if (now > toastUntil) $("toast").classList.remove("visible");
+  const animated = screen === "playing" || screen === "menu";
+  if (
+    !document.hidden &&
+    (renderDirty ||
+      lastRenderedScreen !== screen ||
+      (animated &&
+        (screen === "playing" ||
+          now - lastRender >= 1000 / (navigator.maxTouchPoints > 0 ? 20 : 30))))
+  ) {
+    const drawDt = Math.min((now - lastRender) / 1000, 0.1);
+    if (animated) visualTime += drawDt;
+    renderer.draw(game || preview, animated ? drawDt : 0, visualTime, !game);
+    lastRender = now;
+    lastRenderedScreen = screen;
+    renderDirty = false;
+  }
+  if (toastUntil && now > toastUntil) {
+    $("toast").classList.remove("visible");
+    toastUntil = 0;
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -1,5 +1,6 @@
 import { WORLD, clamp, rng } from "./core.js";
 const TAU = Math.PI * 2;
+const glowSprites = new Map();
 const ellipse = (c, x, y, rx, ry, color, rotation = 0) => {
   c.fillStyle = color;
   c.beginPath();
@@ -42,11 +43,19 @@ function leaf(c, x, y, size, angle, color) {
   c.restore();
 }
 function glow(c, x, y, r, color) {
-  const g = c.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, color);
-  g.addColorStop(1, "transparent");
-  c.fillStyle = g;
-  c.fillRect(x - r, y - r, r * 2, r * 2);
+  const key = `${r}:${color}`;
+  if (!glowSprites.has(key)) {
+    const sprite = document.createElement("canvas");
+    sprite.width = sprite.height = r * 2;
+    const ctx = sprite.getContext("2d"),
+      g = ctx.createRadialGradient(r, r, 0, r, r, r);
+    g.addColorStop(0, color);
+    g.addColorStop(1, "transparent");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, r * 2, r * 2);
+    glowSprites.set(key, sprite);
+  }
+  c.drawImage(glowSprites.get(key), x - r, y - r);
 }
 
 export class Renderer {
@@ -58,6 +67,7 @@ export class Renderer {
     this.reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.width = 0;
     this.height = 0;
+    this.hurtTime = 0;
     this.makeGround();
     this.resize();
   }
@@ -65,10 +75,24 @@ export class Renderer {
     const rect = this.canvas.getBoundingClientRect();
     this.width = rect.width;
     this.height = rect.height;
-    this.dpr = Math.min(devicePixelRatio || 1, 2);
-    this.canvas.width = Math.round(rect.width * this.dpr);
-    this.canvas.height = Math.round(rect.height * this.dpr);
+    const mobile =
+      matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+    this.dpr = Math.min(devicePixelRatio || 1, mobile ? 1.35 : 2);
+    const width = Math.round(rect.width * this.dpr),
+      height = Math.round(rect.height * this.dpr);
+    if (this.canvas.width !== width) this.canvas.width = width;
+    if (this.canvas.height !== height) this.canvas.height = height;
     this.scale = this.width < 700 ? 0.82 : 1;
+    this.shade = this.ctx.createRadialGradient(
+      this.width * 0.52,
+      this.height * 0.5,
+      Math.min(this.width, this.height) * 0.3,
+      this.width * 0.5,
+      this.height * 0.5,
+      Math.max(this.width, this.height) * 0.65,
+    );
+    this.shade.addColorStop(0, "transparent");
+    this.shade.addColorStop(1, "#061f2b6b");
   }
   makeGround() {
     this.ground = document.createElement("canvas");
@@ -251,6 +275,7 @@ export class Renderer {
     c.restore();
   }
   event(e) {
+    if (e.type === "hurt") this.hurtTime = 0.25;
     if (!["hit", "kill", "collect", "dash", "hurt"].includes(e.type)) return;
     if (this.effects.length > 180) this.effects.splice(0, 25);
     if (e.type === "hit") {
@@ -285,6 +310,7 @@ export class Renderer {
       s = this.scale,
       t = this.reduced ? 0 : time;
     if (!w || !h) return;
+    this.hurtTime = Math.max(0, this.hurtTime - dt);
     const vw = w / s,
       vh = h / s,
       p = g.player;
@@ -327,12 +353,27 @@ export class Renderer {
       ellipse(c, x, y, i % 3 ? 1.3 : 2, 1.3, `rgba(222,231,155,${a})`);
     }
     for (const m of g.motes) {
+      if (
+        m.x < this.camera.x - 20 ||
+        m.x > this.camera.x + vw + 20 ||
+        m.y < this.camera.y - 20 ||
+        m.y > this.camera.y + vh + 20
+      )
+        continue;
       glow(c, m.x, m.y, 13, "#e7de8a35");
       c.save();
       c.translate(m.x, m.y + Math.sin(t * 3 + m.x) * 2);
       c.rotate(Math.PI / 4);
       c.fillStyle = "#e9d98c";
       c.fillRect(
+        -m.radius / 1.4,
+        -m.radius / 1.4,
+        m.radius * 1.4,
+        m.radius * 1.4,
+      );
+      c.strokeStyle = "#fff0bd";
+      c.lineWidth = 1;
+      c.strokeRect(
         -m.radius / 1.4,
         -m.radius / 1.4,
         m.radius * 1.4,
@@ -359,7 +400,13 @@ export class Renderer {
       }
     }
     const entities = [
-      ...g.enemies.map((e) => ({ y: e.y, type: "enemy", e })),
+      ...g.enemies
+        .filter(
+          (e) =>
+            Math.abs(e.x - (this.camera.x + vw / 2)) < vw / 2 + 75 &&
+            Math.abs(e.y - (this.camera.y + vh / 2)) < vh / 2 + 75,
+        )
+        .map((e) => ({ y: e.y, type: "enemy", e })),
       { y: p.y, type: "player" },
     ].sort((a, b) => a.y - b.y);
     for (const item of entities) {
@@ -371,6 +418,13 @@ export class Renderer {
         this.enemy(c, item.e, t);
     }
     for (const b of g.bullets) {
+      if (
+        b.x < this.camera.x - 25 ||
+        b.x > this.camera.x + vw + 25 ||
+        b.y < this.camera.y - 25 ||
+        b.y > this.camera.y + vh + 25
+      )
+        continue;
       glow(c, b.x, b.y, 19, "#f5dc8c36");
       line(
         c,
@@ -431,18 +485,20 @@ export class Renderer {
     c.globalAlpha = 1;
     // A soft edge keeps interactive objects distinct without dimming the HUD.
     c.restore();
-    const shade = c.createRadialGradient(
-      w * 0.52,
-      h * 0.5,
-      Math.min(w, h) * 0.3,
-      w * 0.5,
-      h * 0.5,
-      Math.max(w, h) * 0.65,
-    );
-    shade.addColorStop(0, "transparent");
-    shade.addColorStop(1, "#061f2b6b");
-    c.fillStyle = shade;
+    c.fillStyle = this.shade;
     c.fillRect(0, 0, w, h);
+    if (this.hurtTime > 0) {
+      c.strokeStyle = `rgba(237,167,145,${this.hurtTime * 1.4})`;
+      c.lineWidth = 10;
+      c.strokeRect(4, 4, w - 8, h - 8);
+    }
+    const dawn = menu
+      ? 0
+      : clamp((g.elapsed / g.rules.duration - 0.82) / 0.18, 0, 1);
+    if (dawn > 0) {
+      c.fillStyle = `rgba(244,220,154,${dawn * 0.11})`;
+      c.fillRect(0, 0, w, h);
+    }
     if (g.status === "lost") {
       c.fillStyle = "#142a3744";
       c.fillRect(0, 0, w, h);
@@ -456,6 +512,11 @@ export class Renderer {
     const bob = Math.sin(t * 3) * 1.4;
     glow(c, 0, -4, 75, "#d1dd8e16");
     ellipse(c, 0, 10, 17, 7, "#102f2ba0");
+    c.strokeStyle = p.dashTime > 0 ? "#fff0bd" : "#e4e7b5b3";
+    c.lineWidth = p.dashTime > 0 ? 2.5 : 1.2;
+    c.beginPath();
+    c.ellipse(0, 10, 21, 9, 0, 0, TAU);
+    c.stroke();
     if (p.dashTime > 0)
       for (let i = 1; i < 5; i++)
         ellipse(
@@ -530,6 +591,19 @@ export class Renderer {
   enemy(c, e, t) {
     c.save();
     c.translate(e.x, e.y);
+    if (e.type === "boss" && e.windup > 0) {
+      c.strokeStyle = "#f0bdc8";
+      c.lineWidth = 2;
+      c.setLineDash([7, 7]);
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.lineTo(e.chargeX * 220, e.chargeY * 220);
+      c.stroke();
+      c.setLineDash([]);
+      c.beginPath();
+      c.ellipse(0, 0, 50, 43, 0, 0, TAU);
+      c.stroke();
+    }
     const a = Math.atan2(Math.sin(e.phase + t), 1),
       bob = this.reduced ? 0 : Math.sin(t * 6 + e.phase) * 1.7;
     ellipse(

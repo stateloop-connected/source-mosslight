@@ -418,14 +418,15 @@ footer {
   top: 22px;
   left: 28px;
   right: 28px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: flex-start;
   pointer-events: none;
   gap: 16px;
 }
 .hud-left {
-  min-width: 190px;
+  min-width: 0;
+  width: min(220px, 100%);
   background: #142d2be8;
   padding: 10px 14px;
   border-radius: 10px;
@@ -463,7 +464,8 @@ footer {
   border-radius: inherit;
 }
 .health .bar {
-  width: 110px;
+  flex: 1;
+  min-width: 12px;
 }
 .health .bar > i {
   background: #e3ab95;
@@ -484,9 +486,6 @@ footer {
   width: 0;
 }
 .hud-time {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -507,6 +506,7 @@ footer {
   margin-top: 5px;
 }
 .hud-right {
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -699,6 +699,22 @@ footer {
   color: #cad8ba;
   line-height: 1.8;
   margin: 10px 0 0;
+}
+.upgrade-effect {
+  margin-top: 10px;
+  color: var(--leaf);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+#xp-text {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.low-health .health > b {
+  color: var(--danger);
+}
+.low-health .health .bar > i {
+  background: var(--danger);
 }
 .card-shortcut {
   font-size: 11px;
@@ -976,14 +992,14 @@ footer {
     gap: 8px;
   }
   .hud-left {
-    min-width: 120px;
+    min-width: 0;
     padding: 8px 9px;
   }
   .health {
     gap: 6px;
   }
   .health .bar {
-    width: 65px;
+    min-width: 12px;
   }
   .health svg {
     width: 12px;
@@ -1020,8 +1036,8 @@ footer {
   }
   .hud-right .icon-button {
     padding: 7px;
-    width: 31px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .boss-hud {
     top: 91px;
@@ -1070,17 +1086,17 @@ footer {
     gap: 9px;
   }
   .upgrade-card {
-    min-height: 90px;
+    min-height: 106px;
     padding: 13px 14px;
     display: grid;
     grid-template-columns: 35px 1fr auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     column-gap: 13px;
     align-items: center;
     text-align: left;
   }
   .upgrade-card svg {
-    grid-row: span 2;
+    grid-row: span 3;
     margin: 0;
     width: 29px;
     height: 29px;
@@ -1101,6 +1117,11 @@ footer {
     grid-row: 2;
     margin: 4px 0 0;
     font-size: 11px;
+  }
+  .upgrade-effect {
+    grid-column: 2/4;
+    grid-row: 3;
+    margin-top: 5px;
   }
   .card-shortcut {
     display: none;
@@ -1155,6 +1176,10 @@ footer {
   touch-action: none;
   pointer-events: auto;
 }
+.touch-device .joystick.dragging {
+  border-color: var(--leaf);
+  background: #193c32b3;
+}
 .touch-device .joystick > span {
   position: absolute;
   width: 40px;
@@ -1197,6 +1222,46 @@ footer {
 }
 .touch-device .help-keyboard {
   display: none;
+}
+@media (max-width: 900px) {
+  body.in-game {
+    overflow: hidden;
+  }
+  .in-game .app-shell {
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .in-game .topbar {
+    height: 60px;
+    flex: none;
+  }
+  .in-game main {
+    flex: 1;
+    min-height: 0;
+  }
+  .in-game .garden {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    border-radius: 12px;
+  }
+  .in-game .field-notes,
+  .in-game footer {
+    display: none;
+  }
+  .in-game .storage-warning {
+    flex: none;
+    margin: 0 0 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  .mode-picker label > span {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
 }
 @media (max-height: 520px) and (orientation: landscape) {
   .topbar {
