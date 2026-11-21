@@ -79,7 +79,10 @@ export class Renderer {
     this.height = rect.height;
     const mobile =
       matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
-    this.dpr = Math.min(devicePixelRatio || 1, mobile ? 1.35 : 2);
+    this.dpr = Math.min(
+      devicePixelRatio || 1,
+      this.effectsPreference === "reduced" ? 1 : mobile ? 1.35 : 2,
+    );
     const width = Math.round(rect.width * this.dpr),
       height = Math.round(rect.height * this.dpr);
     if (this.canvas.width !== width) this.canvas.width = width;
@@ -95,6 +98,14 @@ export class Renderer {
     );
     this.shade.addColorStop(0, "transparent");
     this.shade.addColorStop(1, "#061f2b6b");
+  }
+  setEffects(preference) {
+    this.effectsPreference = preference;
+    this.reduced =
+      preference === "reduced" ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.effects = [];
+    this.resize();
   }
   makeOuterGarden() {
     const tile = document.createElement("canvas");

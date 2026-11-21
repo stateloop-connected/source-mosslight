@@ -600,6 +600,12 @@ footer {
   padding: 24px;
   overflow-y: auto;
 }
+body:not(.in-game) .overlay {
+  max-height: calc(100svh - 94px);
+}
+.garden:fullscreen .overlay {
+  max-height: 100%;
+}
 .dialog {
   background: #213e35;
   border: 1px solid #617558;
@@ -610,6 +616,10 @@ footer {
   text-align: center;
   box-shadow: 0 16px 60px #00000040;
   outline: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 .dialog h2 {
   font-size: 28px;
@@ -649,6 +659,7 @@ footer {
   gap: 10px;
   align-items: center;
   margin-top: 24px;
+  flex-wrap: wrap;
 }
 .dialog-actions > .start-button,
 .dialog-actions > .secondary-button {
@@ -1251,6 +1262,303 @@ footer {
 }
 .touch-device .help-keyboard {
   display: none;
+}
+.panel-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 12px;
+}
+.panel-links button {
+  min-height: 44px;
+  padding: 8px 4px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 5px;
+}
+.panel-links button:hover {
+  color: var(--ink);
+}
+.build-overview {
+  text-align: left;
+  margin: 20px 0;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.section-heading h3,
+.guide-content h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+.section-heading span,
+.build-list,
+.panel-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+.build-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 16px;
+  padding: 18px 0;
+  margin: 12px 0;
+  border-block: 1px solid var(--line);
+}
+.build-stats dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.build-stats dd {
+  font-size: 14px;
+  margin: 3px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+.build-list {
+  line-height: 1.9;
+  margin: 0;
+}
+.guide-content,
+.settings-content,
+.run-list {
+  text-align: left;
+}
+.guide-content h3 {
+  color: var(--gold);
+  margin: 26px 0 10px;
+}
+.guide-content details {
+  border-bottom: 1px solid var(--line);
+}
+.guide-content summary {
+  min-height: 44px;
+  padding: 10px 2px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.guide-content summary span {
+  float: right;
+  color: var(--muted);
+  font-size: 11px;
+}
+.guide-content details p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+summary:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.settings-content {
+  max-width: 440px;
+  margin: auto;
+}
+.settings-content input {
+  accent-color: var(--leaf);
+  cursor: pointer;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  min-height: 60px;
+  cursor: pointer;
+}
+.setting-row b {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+.setting-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.setting-row input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.volume-setting {
+  margin: 14px 0 24px;
+}
+.volume-setting label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.volume-setting output {
+  color: var(--leaf);
+  font-variant-numeric: tabular-nums;
+}
+.volume-setting input {
+  width: 100%;
+  min-height: 36px;
+  margin: 6px 0 0;
+}
+.setting-group {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 22px 0 0;
+  padding: 12px 0 0;
+}
+.setting-group legend {
+  font-size: 13px;
+  padding-right: 12px;
+}
+.setting-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  margin-right: 14px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.setting-group input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.setting-group p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 6px 0 0;
+}
+.run-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.run-list li {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.run-heading,
+.run-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.run-heading strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.run-heading time,
+.run-list p,
+.run-footer span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.run-list .run-numbers {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.run-list p {
+  margin: 8px 0;
+  line-height: 1.9;
+}
+.run-footer .secondary-button {
+  margin: 0;
+  padding: 8px 12px;
+}
+.empty-journal {
+  padding: 32px 0;
+}
+.empty-journal p + p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.panel-note {
+  line-height: 1.8;
+  margin: 16px 0 0;
+}
+.new-best {
+  font-size: 12px;
+  color: var(--gold);
+  margin: 0 0 18px;
+}
+.journal-button {
+  flex: none;
+  gap: 6px;
+}
+.journal-button svg {
+  width: 15px;
+  height: 15px;
+}
+.reduced-effects *,
+.reduced-effects *::before,
+.reduced-effects *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+.reduced-effects .start-button:hover,
+.reduced-effects .upgrade-card:hover {
+  transform: none;
+}
+@media (max-width: 700px) {
+  .tools .text-button span {
+    display: none;
+  }
+  .tools .text-button,
+  .tools .icon-button {
+    width: 40px;
+    min-width: 40px;
+    padding: 10px;
+  }
+  .field-notes {
+    grid-template-columns: 1fr auto;
+  }
+  .field-notes .records {
+    grid-column: 1 / -1;
+  }
+  .journal-button {
+    align-self: start;
+  }
+  .build-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .build-overview {
+    margin: 16px 0;
+  }
+  .dialog-actions > .secondary-button {
+    min-width: 108px;
+  }
+}
+@media (max-width: 380px) {
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+  }
+  .brand {
+    gap: 6px;
+  }
+  .brand > span {
+    font-size: 14px;
+  }
+  .tools {
+    gap: 0;
+  }
 }
 @media (max-width: 900px) {
   body.in-game {

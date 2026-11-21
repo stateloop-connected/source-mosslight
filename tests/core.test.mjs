@@ -189,8 +189,10 @@ test("formats nonnegative time", () => {
   assert.equal(timeText(-1), "00:00");
   assert.equal(timeText(89.9), "01:29");
 });
-test("invalid mode uses standard night", () =>
-  assert.equal(new Game({ mode: "missing" }).rules, MODES.night));
+test("invalid mode uses standard night", () => {
+  assert.equal(new Game({ mode: "missing" }).rules, MODES.night);
+  assert.equal(new Game({ mode: "constructor" }).rules, MODES.night);
+});
 test("diagonal movement is normalized and bounded", () => {
   const a = new Game(),
     b = new Game();
@@ -313,6 +315,69 @@ test("contact damage ends a run at zero HP", () => {
   g.update(0.01);
   assert.equal(g.status, "lost");
   assert.equal(g.player.hp, 0);
+});
+test("a lethal contact stops bullet and XP mutations in the terminal frame", () => {
+  const g = new Game({ seed: 42 }),
+    attacker = g.spawn("mite"),
+    target = g.spawn("mite");
+  attacker.x = g.player.x;
+  attacker.y = g.player.y;
+  target.x = 1500;
+  target.y = 1000;
+  target.hp = 1;
+  g.player.hp = 1;
+  g.bullets.push({
+    x: target.x,
+    y: target.y,
+    vx: 0,
+    vy: 0,
+    damage: 100,
+    life: 1,
+    radius: 5,
+  });
+  g.motes.push({ x: g.player.x, y: g.player.y, value: 100, life: 1 });
+  g.update(1 / 60);
+  assert.equal(g.status, "lost");
+  assert.equal(g.kills, 0);
+  assert.equal(target.hp, 1);
+  assert.equal(g.collected, 0);
+  assert.equal(g.level, 1);
+  assert.equal(g.events.filter((e) => e.type === "end").length, 1);
+});
+test("soft crowd separation resolves exact overlap without consuming randomness", () => {
+  const g = new Game({ seed: 42 }),
+    control = new Game({ seed: 42 });
+  for (const current of [g, control]) {
+    for (let i = 0; i < 6; i++) {
+      const e = current.spawn("mite");
+      e.x = 700;
+      e.y = 600;
+    }
+  }
+  g.separateEnemies(1 / 60);
+  assert.ok(new Set(g.enemies.map((e) => `${e.x},${e.y}`)).size > 1);
+  for (const e of g.enemies)
+    assert.ok(Math.hypot(e.x - 700, e.y - 600) <= 95 / 60 + 1e-8);
+  assert.equal(g.random(), control.random());
+});
+test("crowd separation preserves the boss telegraph and keeps enemies within the garden", () => {
+  const g = new Game({ seed: 12 }),
+    boss = g.spawn("boss");
+  boss.x = 25;
+  boss.y = 25;
+  const e = g.spawn("beetle");
+  e.x = 25;
+  e.y = 25;
+  g.separateEnemies(1 / 60);
+  assert.equal(boss.x, 25);
+  assert.equal(boss.y, 25);
+  assert.ok(e.x >= 25 && e.y >= 25);
+});
+test("published run seeds retain the same unsigned random starting sequence", () => {
+  const g = new Game({ seed: 1795264351234 }),
+    replay = new Game({ seed: g.seed });
+  assert.ok(g.seed >= 0 && g.seed <= 0xffffffff);
+  assert.equal(g.random(), replay.random());
 });
 test("dawn wins regardless of boss status", () => {
   const g = new Game();

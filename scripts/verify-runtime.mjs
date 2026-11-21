@@ -54,6 +54,21 @@ try {
     );
     if (version !== expected)
       throw Error(`Expected ${expected}, received ${version}`);
+    await page.locator("#settings-button").click();
+    await page.locator("#setting-volume").fill("25");
+    await page.locator('input[value="reduced"]').check();
+    await page.getByRole("button", { name: "完成", exact: true }).click();
+    const settingsSaved = await page.evaluate(() => {
+      const r = JSON.parse(localStorage.getItem("mosslight:v1"));
+      return (
+        r.volume === 0.25 &&
+        r.effects === "reduced" &&
+        document.documentElement.classList.contains("reduced-effects")
+      );
+    });
+    await page.locator("#guide-button").click();
+    const guideComplete = (await page.locator("details").count()) === 12;
+    await page.getByRole("button", { name: "返回", exact: true }).click();
     await page.locator("#start-button").click();
     const started = await page.locator("#hud").isVisible(),
       touchVisible = !mobile || (await page.locator("#joystick").isVisible());
@@ -75,6 +90,7 @@ try {
     const paused = await page
       .getByRole("button", { name: "继续守夜" })
       .isVisible();
+    const buildStats = (await page.locator(".build-stats > div").count()) === 8;
     await page.getByRole("button", { name: "继续守夜" }).click();
     await page.evaluate(async () => {
       const { game } = (
@@ -106,6 +122,31 @@ try {
       b.chargeCooldown = 10000;
     });
     await page.locator("#boss-name").filter({ hasText: "画面外" }).waitFor();
+    const seed = await page.evaluate(async () => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      g.elapsed = g.rules.duration - 0.01;
+      return g.seed;
+    });
+    await page.getByRole("button", { name: "再守一夜", exact: true }).waitFor();
+    await page
+      .getByRole("button", { name: "查看守夜足迹", exact: true })
+      .click();
+    const historyRecorded = (await page.locator(".run-list li").count()) === 1;
+    await page.getByRole("button", { name: "返回", exact: true }).click();
+    await page.getByRole("button", { name: "同种子重试", exact: true }).click();
+    const sameSeedRetry = await page.evaluate(async (seed) => {
+      const s = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession();
+      return (
+        s.game.seed === seed &&
+        s.game.elapsed < 3 &&
+        s.record.history.length === 1 &&
+        s.record.wins === 1
+      );
+    }, seed);
     results.push({
       device: mobile ? "mobile" : "desktop",
       http: response.status(),
@@ -117,8 +158,13 @@ try {
       paused,
       cornerClear: true,
       bossDirection: true,
+      settingsSaved,
+      guideComplete,
+      buildStats,
+      historyRecorded,
+      sameSeedRetry,
       allModulesVersioned:
-        scripts.length >= 6 &&
+        scripts.length >= 7 &&
         scripts.every((s) => s.includes("?v=" + expected)),
       errors,
     });
@@ -146,6 +192,11 @@ if (
       r.choices !== 3 ||
       !r.rerollUsed ||
       !r.paused ||
+      !r.settingsSaved ||
+      !r.guideComplete ||
+      !r.buildStats ||
+      !r.historyRecorded ||
+      !r.sameSeedRetry ||
       !r.allModulesVersioned ||
       r.errors.length,
   )

@@ -1,6 +1,7 @@
 export class Audio {
   constructor() {
     this.enabled = false;
+    this.volume = 0.65;
     this.context = null;
     this.lastShot = 0;
     this.lastCollect = 0;
@@ -16,7 +17,12 @@ export class Audio {
     }
   }
   tone(freq, duration = 0.12, volume = 0.04, type = "sine", delay = 0) {
-    if (!this.enabled || !this.context || this.context.state !== "running")
+    if (
+      !this.enabled ||
+      this.volume <= 0 ||
+      !this.context ||
+      this.context.state !== "running"
+    )
       return;
     const c = this.context,
       o = c.createOscillator(),
@@ -26,7 +32,10 @@ export class Audio {
     o.frequency.setValueAtTime(freq, t);
     o.frequency.exponentialRampToValueAtTime(freq * 0.75, t + duration);
     g.gain.setValueAtTime(0.001, t);
-    g.gain.exponentialRampToValueAtTime(volume, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(
+      Math.max(0.001, volume * this.volume),
+      t + 0.008,
+    );
     g.gain.exponentialRampToValueAtTime(0.001, t + duration);
     o.connect(g);
     g.connect(c.destination);

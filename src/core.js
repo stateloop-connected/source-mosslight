@@ -146,10 +146,10 @@ export function upgradePreview(id, game) {
 
 export class Game {
   constructor({ mode = "night", seed = Date.now() } = {}) {
-    this.mode = MODES[mode] ? mode : "night";
+    this.mode = Object.hasOwn(MODES, mode) ? mode : "night";
     this.rules = MODES[this.mode];
-    this.seed = seed;
-    this.random = rng(seed);
+    this.seed = seed >>> 0;
+    this.random = rng(this.seed);
     this.status = "playing";
     this.elapsed = 0;
     this.level = 1;
@@ -513,6 +513,7 @@ export class Game {
       this.shoot();
     }
     this.orbitTimer -= dt;
+    this.separateEnemies(dt);
     for (const e of this.enemies) {
       if (e.hp <= 0) continue;
       e.hit = Math.max(0, e.hit - dt);
@@ -573,7 +574,7 @@ export class Game {
         if (p.hp <= 0) {
           this.status = "lost";
           this.emit("end");
-          break;
+          return;
         }
       }
     }
@@ -616,6 +617,57 @@ export class Game {
       const a = this.motes.shift(),
         b = this.motes[0];
       b.value += a.value;
+    }
+  }
+  separateEnemies(dt) {
+    // A local grid keeps correction local; never consume RNG or move the boss.
+    const buckets = new Map(),
+      size = 96,
+      offsets = new Map();
+    for (const e of this.enemies) {
+      if (e.hp <= 0) continue;
+      const cx = Math.floor(e.x / size),
+        cy = Math.floor(e.y / size);
+      for (let x = cx - 1; x <= cx + 1; x++)
+        for (let y = cy - 1; y <= cy + 1; y++)
+          for (const other of buckets.get(`${x},${y}`) || []) {
+            let dx = e.x - other.x,
+              dy = e.y - other.y;
+            const d = Math.hypot(dx, dy),
+              minimum = (e.radius + other.radius) * 0.72;
+            if (d >= minimum) continue;
+            if (d < 0.001) {
+              const angle =
+                (((e.id * 97 + other.id * 53) % 360) * Math.PI) / 180;
+              dx = Math.cos(angle);
+              dy = Math.sin(angle);
+            } else {
+              dx /= d;
+              dy /= d;
+            }
+            const push = (minimum - d) * 0.5;
+            for (const [target, sign] of [
+              [e, 1],
+              [other, -1],
+            ]) {
+              if (target.type === "boss") continue;
+              const offset = offsets.get(target) || { x: 0, y: 0 };
+              offset.x += dx * push * sign;
+              offset.y += dy * push * sign;
+              offsets.set(target, offset);
+            }
+          }
+      const key = `${cx},${cy}`;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(e);
+    }
+    for (const [e, offset] of offsets) {
+      const factor = Math.min(
+        1,
+        (95 * dt) / (Math.hypot(offset.x, offset.y) || 1),
+      );
+      e.x = clamp(e.x + offset.x * factor, 25, WORLD.width - 25);
+      e.y = clamp(e.y + offset.y * factor, 25, WORLD.height - 25);
     }
   }
 }

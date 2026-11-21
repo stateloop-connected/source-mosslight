@@ -8,7 +8,14 @@ import {
   upgradePreview,
 } from "./core.js";
 import { Renderer } from "./renderer.js";
-import { loadRecord, saveRecord } from "./storage.js";
+import { loadRecord, saveRecord, blankRecord, completeRun } from "./storage.js";
+import {
+  buildOverview,
+  buildText,
+  guidePanel,
+  settingsPanel,
+  journalPanel,
+} from "./panels.js";
 import { Audio } from "./audio.js";
 import { edgeIndicator } from "./view.js";
 
@@ -45,18 +52,21 @@ try {
   loaded = loadRecord();
 } catch {
   loaded = {
-    record: { score: 0, wins: 0, bestTime: 0, runs: 0, sound: false },
+    record: blankRecord(),
     available: false,
   };
 }
 const record = loaded.record;
 audio.enabled = record.sound;
+audio.volume = record.volume;
 let storageAvailable = loaded.available,
   game = null,
   screen = "menu",
   lastFrame = performance.now(),
   previousFocus = null,
-  helpFrom = "menu",
+  previousScroll = 0,
+  panelStack = [],
+  resultBest = { score: false, time: false },
   toastUntil = 0,
   lastSaved = null,
   pointerId = null,
@@ -139,6 +149,27 @@ function records() {
 function save() {
   storageAvailable = saveRecord(record);
   records();
+  const note = $("dialog").querySelector("[data-save-status]");
+  if (note)
+    note.textContent = storageAvailable
+      ? "设置已保存在这台设备上"
+      : "设置本次有效；浏览器未允许保存，刷新后会恢复默认";
+}
+function applyPreferences() {
+  const touch =
+    record.controls === "touch" ||
+    (record.controls === "auto" &&
+      (navigator.maxTouchPoints > 0 ||
+        matchMedia("(pointer: coarse)").matches));
+  document.documentElement.classList.toggle("touch-device", touch);
+  document.documentElement.classList.toggle(
+    "reduced-effects",
+    record.effects === "reduced",
+  );
+  audio.volume = record.volume;
+  renderer.setEffects(record.effects);
+  resetInput();
+  syncViewport();
 }
 function soundUI() {
   $("sound-icon").setAttribute("href", audio.enabled ? "#i-sound" : "#i-muted");
@@ -169,15 +200,22 @@ function hideDialog() {
   const restore = previousFocus;
   $("overlay").hidden = true;
   previousFocus = null;
+  if (screen === "menu")
+    window.scrollTo({ top: previousScroll, behavior: "instant" });
   if (restore?.isConnected) restore.focus({ preventScroll: true });
 }
 function dialog(html) {
-  if ($("overlay").hidden) previousFocus = document.activeElement;
+  if ($("overlay").hidden) {
+    previousFocus = document.activeElement;
+    previousScroll = window.scrollY;
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
   $("dialog").innerHTML = html;
   $("overlay").hidden = false;
+  $("dialog").scrollTop = 0;
   resetInput();
   requestAnimationFrame(() =>
-    ($("dialog").querySelector("button") || $("dialog")).focus({
+    ($("dialog").querySelector("button,input,summary") || $("dialog")).focus({
       preventScroll: true,
     }),
   );
@@ -189,11 +227,18 @@ function showGameUI(visible) {
   $("menu-panel").hidden = visible;
   if (!visible) $("boss-hud").hidden = true;
 }
-function start() {
+function start(options = {}) {
   audio.unlock();
+  soundUI();
   game = new Game({
-    mode: document.querySelector('input[name="mode"]:checked').value,
+    mode:
+      options.mode ||
+      document.querySelector('input[name="mode"]:checked').value,
+    seed: options.seed,
   });
+  document.querySelector(`input[name="mode"][value="${game.mode}"]`).checked =
+    true;
+  panelStack = [];
   screen = "playing";
   renderer.effects = [];
   lastSaved = null;
@@ -210,6 +255,7 @@ function start() {
   updateHUD(true);
 }
 function menu() {
+  panelStack = [];
   game = null;
   screen = "menu";
   resetInput();
@@ -235,7 +281,7 @@ function resume() {
 }
 function showPause() {
   dialog(
-    `<h2 id="dialog-title">在苔叶间歇一会儿</h2><p class="intro">花园已经暂停，微光会等你回来。</p><button class="start-button" data-action="resume">继续守夜</button><button class="secondary-button" data-action="abandon">结束本局</button><p class="result-build">P 或 Esc 继续 · 当前 ${timeText(game.elapsed)}</p>`,
+    `<h2 id="dialog-title">在苔叶间歇一会儿</h2><p class="intro">花园已经暂停，微光会等你回来。</p><button class="start-button" data-action="resume">继续守夜</button>${buildOverview(game)}<div class="panel-links"><button data-action="guide">花园图鉴</button><button data-action="settings">游戏设置</button><button data-action="journal">守夜足迹</button><button data-action="abandon">结束本局</button></div><p class="result-build">P 或 Esc 继续 · 当前 ${timeText(game.elapsed)}</p>`,
   );
 }
 function showAbandon() {
@@ -254,7 +300,7 @@ function showUpgrade() {
       })
       .join(
         "",
-      )}</div><div class="upgrade-actions"><button class="secondary-button" data-action="reroll" ${game.canReroll() ? "" : "disabled"}>${game.rerolls === 0 ? "本局换选已用完" : game.canReroll() ? "换一组 · 剩余 1 次" : "没有其他可选能力"}</button><span>每局一次，已获得的能力保留</span></div>`,
+      )}</div><div class="upgrade-actions"><button class="secondary-button" data-action="reroll" ${game.canReroll() ? "" : "disabled"}>${game.rerolls === 0 ? "本局换选已用完" : game.canReroll() ? "换一组 · 剩余 1 次" : "没有其他可选能力"}</button><span>每局一次，已获得的能力保留</span></div><div class="panel-links"><button data-action="guide">查看属性与图鉴</button><button data-action="settings">游戏设置</button></div>`,
   );
 }
 function choose(id) {
@@ -285,13 +331,10 @@ function showResult() {
   resetInput();
   if (lastSaved !== game) {
     lastSaved = game;
-    if (!practice) {
-      record.runs++;
-      record.score = Math.max(record.score, score);
-      record.bestTime = Math.max(record.bestTime, Math.floor(game.elapsed));
-      if (won) record.wins++;
-      save();
-    }
+    const completed = completeRun(record, game);
+    Object.assign(record, completed.record);
+    resultBest = completed.best;
+    save();
   }
   const title = won
     ? practice
@@ -303,36 +346,54 @@ function showResult() {
       ? "你驱散了巨蛾，也迎来了清晨。"
       : "你守住了这一夜，每一点微光都没有白费。"
     : "休整一下，换一种生长的方式再出发。";
-  const build =
-    Object.entries(game.build)
-      .map(([id, n]) => `${UPGRADES.find((u) => u.id === id).name} ${n}`)
-      .join(" / ") || "最初的萤火";
+  const build = buildText(game.build);
   dialog(
-    `<div class="result-symbol">${icon(won ? "leaf" : "spark")}</div><h2 id="dialog-title">${title}</h2><p class="intro">${description}</p><div class="result-stats"><div><b>${score.toLocaleString("zh-CN")}</b><span>本局微光</span></div><div><b>${timeText(game.elapsed)}</b><span>守望时间</span></div><div><b>${game.kills}</b><span>驱散虫影</span></div></div><p class="result-build">${build}</p>${practice ? '<p class="result-build">练习局不计入守夜手记</p>' : ""}<div class="dialog-actions"><button class="start-button" data-action="restart">再守一夜</button><button class="secondary-button" data-action="menu">回到花园</button></div>`,
+    `<div class="result-symbol">${icon(won ? "leaf" : "spark")}</div><h2 id="dialog-title">${title}</h2><p class="intro">${description}</p>${resultBest.score || resultBest.time ? `<p class="new-best" role="status">${[resultBest.score && "最高微光新纪录", resultBest.time && "最久守望新纪录"].filter(Boolean).join(" · ")}</p>` : ""}<div class="result-stats"><div><b>${score.toLocaleString("zh-CN")}</b><span>本局微光</span></div><div><b>${timeText(game.elapsed)}</b><span>守望时间</span></div><div><b>${game.kills}</b><span>驱散虫影</span></div></div><p class="result-build">${build}</p><p class="result-build">Lv. ${game.level} · ${game.bossDefeated ? "已驱散巨蛾" : "未驱散巨蛾"} · 种子 ${game.seed}</p>${practice ? '<p class="result-build">练习局已记入足迹，不影响正式纪录</p>' : ""}<div class="dialog-actions"><button class="start-button" data-action="restart">再守一夜</button><button class="secondary-button" data-action="retry">同种子重试</button><button class="secondary-button" data-action="menu">回到花园</button></div><div class="panel-links"><button data-action="journal">查看守夜足迹</button><button data-action="guide">花园图鉴</button></div><p class="panel-note">同种子重试会保留模式与随机起点，操作和视口会影响后续进程。</p>`,
   );
 }
 function help() {
-  if (screen === "help") return;
-  helpFrom = screen;
-  if (screen === "playing") game.pause();
-  screen = "help";
-  resetInput();
+  openPanel("help");
+}
+function renderHelp() {
   dialog(
     `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。不合适时可换一组，每局一次，不消耗经验。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏可拖动左下摇杆，也可在画面左半侧拖动。点右侧按钮冲刺，可短暂免伤并推开身边的虫影；冷却后可再次使用。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；巨蛾会先显示粉色路线，再向该方向俯冲；看到蓄力后横向躲开；画面外的巨蛾会用边缘箭头提示方向。存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
   );
 }
-function closeHelp() {
-  if (helpFrom === "playing") {
+const panels = new Set(["help", "guide", "settings", "journal"]);
+function renderPanel(kind) {
+  if (kind === "help") renderHelp();
+  if (kind === "guide") dialog(guidePanel(game));
+  if (kind === "settings") dialog(settingsPanel(record, storageAvailable));
+  if (kind === "journal")
+    dialog(
+      journalPanel(record, !game || ["won", "lost"].includes(game.status)),
+    );
+}
+function openPanel(kind) {
+  if (screen === kind) return;
+  if (screen === "playing") game.pause();
+  const prior = panelStack.indexOf(kind);
+  if (prior >= 0) panelStack = panelStack.slice(0, prior);
+  else panelStack.push(screen);
+  screen = kind;
+  renderPanel(kind);
+}
+function closePanel() {
+  const from = panelStack.pop() || "menu";
+  if (panels.has(from)) {
+    screen = from;
+    renderPanel(from);
+  } else if (from === "playing") {
     game.resume();
     screen = "playing";
     hideDialog();
     canvas.focus({ preventScroll: true });
-  } else if (helpFrom === "paused") {
+  } else if (from === "paused") {
     screen = "paused";
     showPause();
-  } else if (helpFrom === "choosing") {
+  } else if (from === "choosing") {
     showUpgrade();
-  } else if (helpFrom === "result") {
+  } else if (from === "result") {
     showResult();
   } else {
     screen = "menu";
@@ -394,6 +455,9 @@ function updateHUD(force = false, now = performance.now()) {
 
 $("start-button").addEventListener("click", start);
 $("help-button").addEventListener("click", help);
+$("guide-button").addEventListener("click", () => openPanel("guide"));
+$("settings-button").addEventListener("click", () => openPanel("settings"));
+$("journal-button").addEventListener("click", () => openPanel("journal"));
 $("pause-button").addEventListener("click", pause);
 $("sound-button").addEventListener("click", () => {
   audio.enabled = !audio.enabled;
@@ -401,6 +465,8 @@ $("sound-button").addEventListener("click", () => {
   record.sound = audio.enabled;
   save();
   soundUI();
+  const checkbox = $("dialog").querySelector('[data-setting="sound"]');
+  if (checkbox) checkbox.checked = audio.enabled;
   if (audio.enabled) audio.play("collect");
 });
 $("fullscreen-button").addEventListener("click", async () => {
@@ -412,6 +478,16 @@ $("fullscreen-button").addEventListener("click", async () => {
   }
 });
 $("dialog").addEventListener("click", (e) => {
+  const replay = e.target.closest("[data-replay]");
+  if (
+    replay &&
+    !replay.disabled &&
+    (!game || ["won", "lost"].includes(game.status))
+  ) {
+    const run = record.history[Number(replay.dataset.replay)];
+    if (run) start({ mode: run.mode, seed: run.seed });
+    return;
+  }
   const upgrade = e.target.closest("[data-upgrade]");
   if (upgrade) {
     choose(upgrade.dataset.upgrade);
@@ -426,27 +502,65 @@ $("dialog").addEventListener("click", (e) => {
     abandon: showAbandon,
     finish: () => {
       game.status = "lost";
+      game.endReason = "abandoned";
       game.emit("end");
       showResult();
     },
     restart: start,
+    retry: () => start({ mode: game.mode, seed: game.seed }),
     menu,
-    "close-help": closeHelp,
+    guide: () => openPanel("guide"),
+    settings: () => openPanel("settings"),
+    journal: () => openPanel("journal"),
+    "close-panel": closePanel,
+    "close-help": closePanel,
   };
   if (actions[action]) actions[action]();
+});
+$("dialog").addEventListener("input", (e) => {
+  const node = e.target,
+    setting = node.dataset.setting;
+  if (!setting) return;
+  if (setting === "sound") {
+    audio.enabled = node.checked;
+    audio.unlock();
+    record.sound = audio.enabled;
+    node.checked = audio.enabled;
+    soundUI();
+    if (audio.enabled) audio.play("collect");
+  } else if (setting === "volume") {
+    record.volume = clamp(Number(node.value) / 100, 0, 1);
+    audio.volume = record.volume;
+    $("dialog").querySelector("#volume-value").textContent =
+      `${Math.round(record.volume * 100)}%`;
+  } else if (["effects", "controls"].includes(setting)) {
+    record[setting] = node.value;
+    applyPreferences();
+  }
+  save();
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Tab" && !$("overlay").hidden) {
     const focusable = [
-      ...$("dialog").querySelectorAll("button:not(:disabled),a[href]"),
-    ];
+      ...$("dialog").querySelectorAll(
+        "button:not(:disabled),a[href],input:not(:disabled),summary",
+      ),
+    ].filter((node) => node.getClientRects().length);
     if (focusable.length) {
       const first = focusable[0],
         last = focusable.at(-1);
-      if (e.shiftKey && document.activeElement === first) {
+      if (
+        e.shiftKey &&
+        (document.activeElement === first ||
+          !$("dialog").contains(document.activeElement))
+      ) {
         last.focus();
         e.preventDefault();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (
+        !e.shiftKey &&
+        (document.activeElement === last ||
+          !$("dialog").contains(document.activeElement))
+      ) {
         first.focus();
         e.preventDefault();
       }
@@ -463,7 +577,7 @@ document.addEventListener("keydown", (e) => {
   if (key === "escape" || key === "p") {
     if (screen === "playing") pause();
     else if (screen === "paused") resume();
-    else if (screen === "help") closeHelp();
+    else if (panels.has(screen)) closePanel();
     return;
   }
   if (screen === "choosing" && ["1", "2", "3"].includes(key)) {
@@ -522,7 +636,12 @@ function joystickMove(e) {
     `translate(${dx * scale}px,${dy * scale}px)`;
 }
 function beginJoystick(e, floating = false) {
-  if (screen !== "playing" || pointerId !== null) return;
+  if (
+    screen !== "playing" ||
+    pointerId !== null ||
+    !document.documentElement.classList.contains("touch-device")
+  )
+    return;
   e.preventDefault();
   const r = joystick.getBoundingClientRect();
   if (floating) {
@@ -573,6 +692,11 @@ function syncViewport() {
   renderDirty = true;
 }
 new ResizeObserver(syncViewport).observe($("garden"));
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener(
+  "change",
+  applyPreferences,
+);
+applyPreferences();
 records();
 soundUI();
 function frame(now) {
