@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-21",
+  "results": [
+    {
+      "device": "desktop",
+      "http": 200,
+      "version": "1.1.0",
+      "footerVersion": true,
+      "started": true,
+      "touchVisible": true,
+      "upgradeChoices": 3,
+      "numericPreviews": 3,
+      "paused": true,
+      "allModulesVersioned": true,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "http": 200,
+      "version": "1.1.0",
+      "footerVersion": true,
+      "started": true,
+      "touchVisible": true,
+      "upgradeChoices": 3,
+      "numericPreviews": 3,
+      "paused": true,
+      "allModulesVersioned": true,
+      "errors": []
+    }
+  ]
+}

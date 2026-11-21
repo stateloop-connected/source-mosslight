@@ -14,7 +14,7 @@
 | 在线试玩                      | 已部署 GitHub Pages，HTTP 200，桌面与手机浏览器线上交互通过      |
 | GitHub CI                     | Linux / Chromium 的 Checks 成功                                  |
 | v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）  |
-| 本地改进                      | 1.1.0 本地 25 项逻辑/构建测试、23 项浏览器测试通过；准备同步两端 |
+| v1.1.0 | 已部署并完成桌面 / 手机公网验证；25 项逻辑/构建测试、23 项浏览器流程通过 |
 
 ## 远端
 
@@ -22,14 +22,21 @@
 - Gitee：https://gitee.com/yunhanhai/mosslight
 - 在线试玩：https://yunhanhai.github.io/mosslight/
 
-## v1.1.0
+## v1.1.0 发布验证
 
-- 在 1.0.0 之后的游戏手感、手机布局与 HUD 性能优化，完整记录在 CHANGELOG、GAME_DESIGN、TESTING 与 ARCHITECTURE。
-- 发布工作流仍从独立构建 `dist/` 部署；发布成功后填写此版提交、Actions 与线上版本验证链接。
+- 游戏改进提交：`6517208c056fcaa59fd008f088340527fc048de9`。
+- 部署产物可见性修复：`55b8108af6b77fe70d3ba6e2755daa5c8c4575e0`；仅调整发布流程，游戏代码未改。
+- Linux / Chromium Checks： https://github.com/yunhanhai/mosslight/actions/runs/44893121241 — success。
+- Pages 部署： https://github.com/yunhanhai/mosslight/actions/runs/44893121228 — success。
+- 公网版本接口返回 `1.1.0`，桌面 / 手机均验证了进入游戏、3 个带数值预览的能力、选择能力及暂停；5 个游戏模块都带统一版本号。
+- 原始验证记录：`online-verification-v1.1.json`；构建验证：`build-verification.json`；优化 A/B 指标：`optimization-v1.1.json`。
+- 本地：25 项逻辑 / 构建测试通过，23 项浏览器流程通过，3 项手机专用用例在桌面跳过；截图覆盖四种尺寸与升级、结算、巨蛾蓄力。
+- 版本发布页：https://github.com/yunhanhai/mosslight/releases/tag/v1.1.0
+- 此次保留原有花园视觉与本地记录。真实 iOS / 低端设备人工测试仍未代替，详见 TESTING.md。
 
 ## 首次发布验证
 
-- 游戏代码提交：`458683c89e05f9c2072728d572acad0115deb4d6`。后续发布记录提交只更新说明和验证资料。
+- 游戏代码提交：`458683c89e05f9c2072728d572acad0115deb4d6`。该首版的随后一条提交仅更新说明和验证资料；v1.1 变更见上节。
 - CI：https://github.com/yunhanhai/mosslight/actions/runs/44882761129 — success。
 - Pages：https://github.com/yunhanhai/mosslight/actions/runs/44882761134 — attempt 2 success。
 - 首次 Pages 任务因站点尚未启用而在 configure-pages 步骤失败，启用工作流型 Pages 后重跑成功，没有为绕过问题修改游戏。

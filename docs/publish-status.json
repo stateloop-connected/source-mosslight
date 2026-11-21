@@ -5,7 +5,8 @@
     "repository_created": true,
     "pushed": true,
     "public": true,
-    "anonymous_api_http": 200
+    "anonymous_api_http": 200,
+    "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.1.0"
   },
   "gitee": {
     "url": "https://gitee.com/yunhanhai/mosslight",
@@ -22,15 +23,24 @@
     "enabled": true,
     "http": 200,
     "workflow_result": "success",
-    "workflow_attempt": 2,
-    "desktop_and_mobile_browser_checks": "passed"
+    "workflow_attempt": 1,
+    "desktop_and_mobile_browser_checks": "v1.1.0 passed",
+    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/44893121228"
   },
-  "code_revision": "458683c89e05f9c2072728d572acad0115deb4d6",
+  "code_revision": "6517208c056fcaa59fd008f088340527fc048de9",
   "checks": {
     "github_actions": "success",
-    "unit_tests": 19,
-    "browser_tests_passed": 17,
-    "browser_tests_skipped": 1,
-    "independent_review_fix_verdict": "ship"
-  }
+    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/44893121241",
+    "unit_and_build_tests": 25,
+    "browser_tests_passed": 23,
+    "browser_tests_skipped": 3
+  },
+  "previous_release": {
+    "version": "1.0.0",
+    "code_revision": "458683c89e05f9c2072728d572acad0115deb4d6",
+    "independent_review_scope": "two v1.0 fixes, ship"
+  },
+  "version": "1.1.0",
+  "workflow_revision": "55b8108af6b77fe70d3ba6e2755daa5c8c4575e0",
+  "online_verification": "online-verification-v1.1.json"
 }
