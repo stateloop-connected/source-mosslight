@@ -10,6 +10,7 @@ import {
 import { Renderer } from "./renderer.js";
 import { loadRecord, saveRecord } from "./storage.js";
 import { Audio } from "./audio.js";
+import { edgeIndicator } from "./view.js";
 
 // Keep touch controls stable on hybrid devices, including after a mouse click.
 document.documentElement.classList.toggle(
@@ -112,7 +113,12 @@ preview.motes = [
   { x: 1082, y: 844, radius: 4 },
   { x: 1364, y: 794, radius: 4 },
 ];
-export const getSession = () => ({ game, screen, record });
+export const getSession = () => ({
+  game,
+  screen,
+  record,
+  view: renderer.getView(),
+});
 const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const phases = [
   "露水初降",
@@ -246,7 +252,9 @@ function showUpgrade() {
           level = (game.build[id] || 0) + 1;
         return `<button class="upgrade-card" data-upgrade="${id}">${icon(u.icon)}<strong>${u.name}</strong><small>Lv. ${level} / ${u.max}</small><p>${u.desc}</p><span class="upgrade-effect">${upgradePreview(id, game)}</span><span class="card-shortcut">按 ${i + 1} 选择</span></button>`;
       })
-      .join("")}</div>`,
+      .join(
+        "",
+      )}</div><div class="upgrade-actions"><button class="secondary-button" data-action="reroll" ${game.canReroll() ? "" : "disabled"}>${game.rerolls === 0 ? "本局换选已用完" : game.canReroll() ? "换一组 · 剩余 1 次" : "没有其他可选能力"}</button><span>每局一次，已获得的能力保留</span></div>`,
   );
 }
 function choose(id) {
@@ -310,7 +318,7 @@ function help() {
   screen = "help";
   resetInput();
   dialog(
-    `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏可拖动左下摇杆，也可在画面左半侧拖动。点右侧按钮冲刺，可短暂免伤并推开身边的虫影；冷却后可再次使用。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；巨蛾会先显示粉色路线，再向该方向俯冲；看到蓄力后横向躲开。存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
+    `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。不合适时可换一组，每局一次，不消耗经验。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏可拖动左下摇杆，也可在画面左半侧拖动。点右侧按钮冲刺，可短暂免伤并推开身边的虫影；冷却后可再次使用。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；巨蛾会先显示粉色路线，再向该方向俯冲；看到蓄力后横向躲开；画面外的巨蛾会用边缘箭头提示方向。存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
   );
 }
 function closeHelp() {
@@ -367,7 +375,15 @@ function updateHUD(force = false, now = performance.now()) {
   if ($("boss-hud").hidden !== !boss) $("boss-hud").hidden = !boss;
   if (boss) {
     fill("boss-fill", (boss.hp / boss.maxHp) * 100);
-    text("boss-name", boss.windup > 0 ? "噬光巨蛾 · 即将俯冲" : "噬光巨蛾");
+    const v = renderer.getView();
+    text(
+      "boss-name",
+      boss.windup > 0
+        ? "噬光巨蛾 · 即将俯冲"
+        : edgeIndicator(boss, v.camera, v.width, v.height, v.scale)
+          ? "噬光巨蛾 · 画面外"
+          : "噬光巨蛾",
+    );
   }
   attr(
     "hud",
@@ -403,6 +419,9 @@ $("dialog").addEventListener("click", (e) => {
   }
   const action = e.target.closest("[data-action]")?.dataset.action;
   const actions = {
+    reroll: () => {
+      if (game?.reroll()) showUpgrade();
+    },
     resume,
     abandon: showAbandon,
     finish: () => {
@@ -454,7 +473,7 @@ document.addEventListener("keydown", (e) => {
   if (screen === "playing") {
     keys.add(key);
     if (key === " ") {
-      game.dash();
+      triggerDash();
     }
   }
 });
@@ -471,8 +490,21 @@ document.addEventListener("visibilitychange", () => {
 });
 $("dash-button").addEventListener("pointerdown", (e) => {
   e.preventDefault();
-  if (screen === "playing") game.dash();
+  triggerDash();
 });
+function triggerDash() {
+  if (screen === "playing")
+    game.dash({
+      x:
+        (keys.has("d") || keys.has("arrowright") ? 1 : 0) -
+        (keys.has("a") || keys.has("arrowleft") ? 1 : 0) +
+        gamepad.x,
+      y:
+        (keys.has("s") || keys.has("arrowdown") ? 1 : 0) -
+        (keys.has("w") || keys.has("arrowup") ? 1 : 0) +
+        gamepad.y,
+    });
+}
 const joystick = $("joystick");
 function joystickMove(e) {
   if (e.pointerId !== pointerId || !stickCenter) return;

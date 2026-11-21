@@ -1,4 +1,5 @@
 import { WORLD, clamp, rng } from "./core.js";
+import { cameraTarget, edgeIndicator } from "./view.js";
 const TAU = Math.PI * 2;
 const glowSprites = new Map();
 const ellipse = (c, x, y, rx, ry, color, rotation = 0) => {
@@ -69,6 +70,7 @@ export class Renderer {
     this.height = 0;
     this.hurtTime = 0;
     this.makeGround();
+    this.makeOuterGarden();
     this.resize();
   }
   resize() {
@@ -93,6 +95,37 @@ export class Renderer {
     );
     this.shade.addColorStop(0, "transparent");
     this.shade.addColorStop(1, "#061f2b6b");
+  }
+  makeOuterGarden() {
+    const tile = document.createElement("canvas");
+    tile.width = tile.height = 192;
+    const c = tile.getContext("2d"),
+      random = rng(8976);
+    c.fillStyle = "#18392e";
+    c.fillRect(0, 0, 192, 192);
+    for (let i = 0; i < 65; i++) {
+      const x = random() * 192,
+        y = random() * 192,
+        size = 6 + random() * 13;
+      for (let j = 0; j < 3; j++)
+        leaf(
+          c,
+          x,
+          y,
+          size,
+          random() * TAU,
+          ["#234d36", "#2c563a", "#365d3e"][j],
+        );
+    }
+    this.outerGarden = this.ctx.createPattern(tile, "repeat");
+  }
+  getView() {
+    return {
+      camera: { ...this.camera },
+      width: this.width,
+      height: this.height,
+      scale: this.scale,
+    };
   }
   makeGround() {
     this.ground = document.createElement("canvas");
@@ -314,16 +347,9 @@ export class Renderer {
     const vw = w / s,
       vh = h / s,
       p = g.player;
-    const targetX = clamp(
-      p.x - vw * (menu ? 0.7 : 0.5),
-      0,
-      Math.max(0, WORLD.width - vw),
-    );
-    const targetY = clamp(
-      p.y - vh * (menu ? (w < 700 ? 0.69 : 0.54) : 0.52),
-      0,
-      Math.max(0, WORLD.height - vh),
-    );
+    const target = cameraTarget(p, w, h, s, menu),
+      targetX = target.x,
+      targetY = target.y;
     const f = 1 - Math.exp(-Math.min(dt, 0.05) * 5);
     this.camera.x += (targetX - this.camera.x) * f;
     this.camera.y += (targetY - this.camera.y) * f;
@@ -333,6 +359,15 @@ export class Renderer {
     c.save();
     c.scale(s, s);
     c.translate(-this.camera.x, -this.camera.y);
+    if (
+      this.camera.x < 0 ||
+      this.camera.y < 0 ||
+      this.camera.x + vw > WORLD.width ||
+      this.camera.y + vh > WORLD.height
+    ) {
+      c.fillStyle = this.outerGarden;
+      c.fillRect(this.camera.x, this.camera.y, vw, vh);
+    }
     c.drawImage(this.ground, 0, 0);
     const moon = c.createLinearGradient(
       this.camera.x,
@@ -503,6 +538,37 @@ export class Renderer {
       c.fillStyle = "#142a3744";
       c.fillRect(0, 0, w, h);
     }
+    if (!menu) this.drawBossIndicator(g);
+  }
+  drawBossIndicator(g) {
+    const boss = g.enemies.find((e) => e.type === "boss");
+    const point = boss
+      ? edgeIndicator(boss, this.camera, this.width, this.height, this.scale)
+      : null;
+    if (!point) return;
+    const c = this.ctx;
+    c.save();
+    c.translate(point.x, point.y);
+    c.fillStyle = "#213e35";
+    c.strokeStyle = boss.windup > 0 ? "#f0bdc8" : "#f0cc88";
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.arc(0, 0, 16, 0, TAU);
+    c.fill();
+    c.stroke();
+    c.save();
+    c.rotate(point.angle);
+    c.beginPath();
+    c.moveTo(-5, -6);
+    c.lineTo(4, 0);
+    c.lineTo(-5, 6);
+    c.stroke();
+    c.restore();
+    c.fillStyle = "#f0f0d9";
+    c.font = "11px sans-serif";
+    c.textAlign = "center";
+    c.fillText("巨蛾", 0, 32);
+    c.restore();
   }
   player(c, p, t, menu) {
     c.save();
@@ -521,8 +587,8 @@ export class Renderer {
       for (let i = 1; i < 5; i++)
         ellipse(
           c,
-          -p.lastX * i * 12,
-          -p.lastY * i * 12 + 2,
+          -p.dashX * i * 12,
+          -p.dashY * i * 12 + 2,
           10 - i,
           8 - i,
           `rgba(197,220,155,${0.2 - i * 0.035})`,

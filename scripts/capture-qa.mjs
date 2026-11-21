@@ -77,6 +77,15 @@ for (const v of [
       fullPage: false,
       scale: "css",
     });
+    const reroll = page.locator('[data-action="reroll"]');
+    if (await reroll.isEnabled()) {
+      await reroll.click();
+      await page.screenshot({
+        path: `.impeccable/review/${v.name}-rerolled.png`,
+        fullPage: false,
+        scale: "css",
+      });
+    }
     for (
       let i = 0;
       i < 8 && (await page.locator(".upgrade-card").first().isVisible());
@@ -96,6 +105,43 @@ for (const v of [
       fullPage: false,
       scale: "css",
     });
+  }
+  if (v.name === "mobile") {
+    await page.getByRole("button", { name: "再守一夜" }).click();
+    await page.evaluate(async () => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      g.player.x = 25;
+      g.player.y = 25;
+      g.enemies = [];
+      g.motes = [];
+      g.spawnTimer = 10000;
+    });
+    await page.waitForTimeout(1500);
+    await page
+      .locator("#garden")
+      .screenshot({
+        path: ".impeccable/review/mobile-corner-safe.png",
+        scale: "css",
+      });
+    await page.evaluate(async () => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      g.bossSpawned = true;
+      const boss = g.spawn("boss");
+      boss.x = 1970;
+      boss.y = 1470;
+      boss.chargeCooldown = 10000;
+    });
+    await page.locator("#boss-name").filter({ hasText: "画面外" }).waitFor();
+    await page
+      .locator("#garden")
+      .screenshot({
+        path: ".impeccable/review/mobile-boss-direction.png",
+        scale: "css",
+      });
   }
   results.push({ viewport: v, checks, errors });
   await context.close();

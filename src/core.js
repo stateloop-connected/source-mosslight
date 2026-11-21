@@ -1,4 +1,5 @@
 export const WORLD = { width: 2000, height: 1500 };
+export const MAX_ENEMIES = 145;
 export const MODES = {
   night: {
     label: "守夜",
@@ -166,6 +167,8 @@ export class Game {
       dashRemaining: 0,
       lastX: 1,
       lastY: 0,
+      dashX: 1,
+      dashY: 0,
     };
     this.stats = {
       maxHp: 100,
@@ -194,6 +197,7 @@ export class Game {
     this.attackRange = 520;
     this.dashSerial = 0;
     this.dewSeeded = false;
+    this.rerolls = 1;
   }
   setViewport(width, height) {
     if (
@@ -232,9 +236,16 @@ export class Game {
   resume() {
     if (this.status === "paused") this.status = "playing";
   }
-  dash() {
+  dash(input = { x: 0, y: 0 }) {
     const p = this.player;
     if (this.status !== "playing" || p.dashRemaining > 0) return false;
+    const dx = Number.isFinite(input.x) ? input.x : 0,
+      dy = Number.isFinite(input.y) ? input.y : 0,
+      length = Math.hypot(dx, dy);
+    p.dashX = length > 0.08 ? dx / length : p.lastX;
+    p.dashY = length > 0.08 ? dy / length : p.lastY;
+    p.lastX = p.dashX;
+    p.lastY = p.dashY;
     p.dashTime = 0.19;
     this.dashSerial++;
     p.dashRemaining = this.stats.dashCooldown;
@@ -400,6 +411,30 @@ export class Game {
     this.checkLevel();
     return true;
   }
+  canReroll() {
+    return (
+      this.status === "choosing" &&
+      this.rerolls > 0 &&
+      UPGRADES.some(
+        (u) => (this.build[u.id] || 0) < u.max && !this.choices.includes(u.id),
+      )
+    );
+  }
+  reroll() {
+    if (!this.canReroll()) return false;
+    const available = UPGRADES.filter((u) => (this.build[u.id] || 0) < u.max);
+    const fresh = available.filter((u) => !this.choices.includes(u.id)),
+      previous = available.filter((u) => this.choices.includes(u.id));
+    for (const pool of [fresh, previous])
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(this.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+    this.choices = [...fresh, ...previous].slice(0, 3).map((u) => u.id);
+    this.rerolls--;
+    this.emit("reroll");
+    return true;
+  }
   update(delta, input = { x: 0, y: 0 }) {
     if (this.status !== "playing") return;
     const dt = clamp(Number.isFinite(delta) ? delta : 0, 0, 0.05);
@@ -420,26 +455,34 @@ export class Game {
       ix /= len;
       iy /= len;
     }
-    if (len > 0.08) {
+    const dashDt = Math.min(dt, p.dashTime),
+      normalDt = dt - dashDt,
+      dashing = dashDt > 0;
+    if (len > 0.08 && normalDt > 0) {
       p.lastX = ix / Math.hypot(ix, iy);
       p.lastY = iy / Math.hypot(ix, iy);
     }
-    const dashing = p.dashTime > 0;
-    if (dashing) {
-      ix = p.lastX;
-      iy = p.lastY;
-      p.dashTime = Math.max(0, p.dashTime - dt);
-    }
-    const speed = this.stats.speed * (dashing ? 4.5 : 1);
-    p.x = clamp(p.x + ix * speed * dt, 25, WORLD.width - 25);
-    p.y = clamp(p.y + iy * speed * dt, 25, WORLD.height - 25);
+    p.dashTime = Math.max(0, p.dashTime - dashDt);
+    p.x = clamp(
+      p.x + this.stats.speed * (ix * normalDt + p.dashX * 4.5 * dashDt),
+      25,
+      WORLD.width - 25,
+    );
+    p.y = clamp(
+      p.y + this.stats.speed * (iy * normalDt + p.dashY * 4.5 * dashDt),
+      25,
+      WORLD.height - 25,
+    );
     const wave = Math.floor(this.elapsed / 30);
     if (wave > this.wave) {
       this.wave = wave;
       this.emit("wave", { wave });
     }
     this.spawnTimer -= dt;
-    if (this.spawnTimer <= 0 && this.enemies.length < 145) {
+    if (
+      this.spawnTimer <= 0 &&
+      this.enemies.length < (this.bossSpawned ? MAX_ENEMIES : MAX_ENEMIES - 1)
+    ) {
       const progress = this.elapsed / this.rules.duration;
       this.spawnTimer =
         Math.max(0.2, 1.1 - progress * 0.82) / this.rules.spawnScale;
@@ -451,7 +494,13 @@ export class Game {
             ? "beetle"
             : "mite",
       );
-      if (this.elapsed > 85 && this.random() < 0.34) this.spawn("mite");
+      if (
+        this.elapsed > 85 &&
+        this.enemies.length <
+          (this.bossSpawned ? MAX_ENEMIES : MAX_ENEMIES - 1) &&
+        this.random() < 0.34
+      )
+        this.spawn("mite");
     }
     if (!this.bossSpawned && this.elapsed >= this.rules.bossAt) {
       this.bossSpawned = true;

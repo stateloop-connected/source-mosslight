@@ -16,6 +16,112 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 });
+
+test("upgrade reroll is limited to once per run and leaves the choice paused", async ({
+  page,
+}) => {
+  await page.locator("#start-button").click();
+  await page.evaluate(async () => {
+    const g = (await import("/src/main.js")).getSession().game;
+    g.motes = [];
+    g.addXp(13);
+  });
+  await page.locator(".upgrade-card").first().waitFor();
+  const old = await page
+    .locator(".upgrade-card")
+    .evaluateAll((nodes) => nodes.map((n) => n.dataset.upgrade));
+  const before = await session(page);
+  await page.getByRole("button", { name: "换一组 · 剩余 1 次" }).click();
+  await expect(
+    page.getByRole("button", { name: "本局换选已用完" }),
+  ).toBeDisabled();
+  const fresh = await page
+    .locator(".upgrade-card")
+    .evaluateAll((nodes) => nodes.map((n) => n.dataset.upgrade));
+  expect(fresh.every((id) => !old.includes(id))).toBe(true);
+  expect((await session(page)).elapsed).toBe(before.elapsed);
+  await page.locator(".upgrade-card").first().click();
+  await expect(page.locator("#equipped>span")).toHaveCount(1);
+  await page.evaluate(async () => {
+    const g = (await import("/src/main.js")).getSession().game;
+    g.motes = [];
+    g.addXp(8 + g.level * 5 - g.xp);
+  });
+  await expect(
+    page.getByRole("button", { name: "本局换选已用完" }),
+  ).toBeDisabled();
+});
+
+test("player remains visible at all garden corners after the camera settles", async ({
+  page,
+}) => {
+  await page.locator("#start-button").click();
+  for (const [x, y] of [
+    [25, 25],
+    [1975, 25],
+    [1975, 1475],
+    [25, 1475],
+  ]) {
+    await page.evaluate(
+      async ({ x, y }) => {
+        const g = (await import("/src/main.js")).getSession().game;
+        g.enemies = [];
+        g.motes = [];
+        g.spawnTimer = 10000;
+        g.player.x = x;
+        g.player.y = y;
+      },
+      { x, y },
+    );
+    await expect
+      .poll(async () =>
+        page.evaluate(async () => {
+          const { game, view: v } = (await import("/src/main.js")).getSession();
+          const x = (game.player.x - v.camera.x) * v.scale,
+            y = (game.player.y - v.camera.y) * v.scale;
+          return x > 65 && x < v.width - 65 && y > 115 && y < v.height - 100;
+        }),
+      )
+      .toBe(true);
+  }
+});
+
+test("off-screen boss is identified and the label clears when it enters view", async ({
+  page,
+}) => {
+  await page.locator("#start-button").click();
+  await page.evaluate(async () => {
+    const g = (await import("/src/main.js")).getSession().game;
+    g.bossSpawned = true;
+    g.enemies = [];
+    const boss = g.spawn("boss");
+    boss.x = 1950;
+    boss.y = 40;
+    boss.chargeCooldown = 10000;
+  });
+  await expect(page.locator("#boss-name")).toContainText("画面外");
+  await page.evaluate(async () => {
+    const g = (await import("/src/main.js")).getSession().game,
+      boss = g.enemies.find((e) => e.type === "boss");
+    boss.x = g.player.x + 80;
+    boss.y = g.player.y;
+  });
+  await expect(page.locator("#boss-name")).toHaveText("噬光巨蛾");
+});
+
+test("pressing a direction and dash before the next frame uses that direction", async ({
+  page,
+}) => {
+  await page.locator("#start-button").click();
+  const direction = await page.evaluate(async () => {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    const p = (await import("/src/main.js")).getSession().game.player;
+    document.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
+    return { x: p.dashX, y: p.dashY };
+  });
+  expect(direction).toEqual({ x: 0, y: -1 });
+});
 test("first view is responsive, self contained, and renders real art", async ({
   page,
 }, info) => {

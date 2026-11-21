@@ -11,8 +11,92 @@ import {
   distance,
   scoreFor,
   upgradePreview,
+  MAX_ENEMIES,
 } from "../src/core.js";
 import { loadRecord, saveRecord } from "../src/storage.js";
+
+test("dash direction is chosen immediately and stays locked during the burst", () => {
+  const g = new Game();
+  g.dash({ x: 0, y: -1 });
+  g.update(0.05, { x: 1, y: 0 });
+  assert.equal(g.player.x, 1000);
+  assert.ok(g.player.y < 750);
+  assert.equal(g.player.dashY, -1);
+  assert.equal(g.player.lastY, -1);
+});
+test("dash travel uses the exact duration independently of step size", () => {
+  const travels = [];
+  for (const dt of [0.05, 1 / 120]) {
+    const g = new Game();
+    g.dash();
+    for (let i = 0; i < Math.round(0.5 / dt); i++) g.update(dt);
+    travels.push(g.player.x - 1000);
+  }
+  assert.ok(Math.abs(travels[0] - 175 * 4.5 * 0.19) < 1e-6);
+  assert.ok(Math.abs(travels[0] - travels[1]) < 1e-6);
+});
+test("one reroll replaces early choices without spending XP, time, or an upgrade", () => {
+  const g = new Game({ seed: 7 });
+  assert.equal(g.reroll(), false);
+  g.addXp(13);
+  const old = [...g.choices],
+    xp = g.xp;
+  assert.equal(g.reroll(), true);
+  assert.ok(g.choices.every((id) => !old.includes(id)));
+  assert.equal(g.rerolls, 0);
+  assert.equal(g.xp, xp);
+  assert.equal(g.elapsed, 0);
+  assert.deepEqual(g.build, {});
+  assert.equal(g.status, "choosing");
+  assert.equal(g.reroll(), false);
+  assert.equal(g.choose(g.choices[0]), true);
+});
+test("reroll respects capped abilities and does not spend a charge when no alternate exists", () => {
+  const g = new Game();
+  for (const u of UPGRADES) g.build[u.id] = u.max;
+  g.build.power = 0;
+  g.addXp(13);
+  assert.deepEqual(g.choices, ["power"]);
+  assert.equal(g.canReroll(), false);
+  assert.equal(g.reroll(), false);
+  assert.equal(g.rerolls, 1);
+});
+test("reroll offers at least one fresh option from a small remaining pool", () => {
+  const g = new Game({ seed: 9 });
+  for (const u of UPGRADES.slice(4)) g.build[u.id] = u.max;
+  g.addXp(13);
+  const old = [...g.choices];
+  assert.equal(g.reroll(), true);
+  assert.equal(new Set(g.choices).size, 3);
+  assert.ok(g.choices.some((id) => !old.includes(id)));
+});
+test("late bonus spawns cannot exceed the enemy limit", () => {
+  const g = new Game();
+  g.elapsed = 100;
+  g.bossSpawned = true;
+  g.random = () => 0;
+  g.spawnTimer = 0;
+  for (let i = 0; i < 144; i++) {
+    const e = g.spawn("mite");
+    e.x = 50;
+    e.y = 50;
+  }
+  g.update(0.01);
+  assert.equal(g.enemies.length, MAX_ENEMIES);
+});
+test("a reserved spawn slot allows the boss without exceeding the enemy limit", () => {
+  const g = new Game();
+  g.elapsed = 139.99;
+  g.spawnTimer = 0;
+  for (let i = 0; i < 144; i++) {
+    const e = g.spawn("mite");
+    e.x = 50;
+    e.y = 50;
+  }
+  g.update(0.05);
+  assert.equal(g.enemies.length, MAX_ENEMIES);
+  assert.equal(g.enemies.filter((e) => e.type === "boss").length, 1);
+});
 
 test("opening dew teaches collection once and can fund the first upgrade", () => {
   const g = new Game({ seed: 4 });

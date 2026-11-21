@@ -1,4 +1,4 @@
-# 苔光守夜 · Mosslight v1.1.0
+# 苔光守夜 · Mosslight v1.2.0
 
 **借一点萤火，守到天亮。**
 
@@ -7,6 +7,8 @@
 **[在线试玩](https://yunhanhai.github.io/mosslight/)** · [GitHub 源码](https://github.com/yunhanhai/mosslight) · [Gitee 镜像](https://gitee.com/yunhanhai/mosslight)
 
 首轮上手改进：开场拾取金色露光即可选择第一项能力；升级会显示本局真实数值变化；手机改为全屏纵向游玩，也可以在屏幕左侧拖动移动；冲刺能短暂免伤并推开近身虫影，巨蛾会先显示俯冲路线。
+
+v1.2 增加每局一次升级换选、地图角落安全视野和画面外巨蛾方向指示，并修正冲刺方向与后期刷怪数量边界。旧成绩和设置继续保留。
 
 ![苔光守夜桌面画面](docs/screenshots/desktop.png)
 
