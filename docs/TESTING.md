@@ -72,3 +72,5 @@
 功能面板测试等待 DOMContentLoaded 和可见交互控件；字体就绪单独由视觉 QA 验证，避免 Windows Edge 的偶发 FontFaceSet.ready 等待阻塞无关的功能检查。浏览器测试与截图 / 设计扫描顺序执行。
 
 Windows Edge 在合并运行场景与面板套件时偶发导航 / 字体等待超时；`npm run test:browser` 现按两个独立 Playwright 进程顺序执行，释放浏览器资源，不使用自动重试。开发浏览器下载曾被本机网络重置，验证继续使用已安装 Edge；这不影响零依赖游戏运行。
+
+v1.3 构建站与公开站的桌面 / 手机验证均通过，实际版本 1.3.0，完整 7 模块查询参数一致；包括设置持久化、图鉴、暂停属性、结算足迹和同种子重试。原始结果为 build-verification-v1.3.json 与 online-verification-v1.3.json。Linux / Chromium Checks 与修复后的 Pages 部署均为 success，链接见 RELEASE.md。

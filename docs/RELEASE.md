@@ -18,6 +18,20 @@ v1.3 发布维护日期：2026-11-22（Asia/Shanghai）。
 | v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）          |
 | v1.1.0                        | 已部署并完成桌面 / 手机公网验证；25 项逻辑/构建测试、23 项浏览器流程通过 |
 
+## v1.3.0 发布验证
+
+发布日期：2026-11-22（Asia/Shanghai）。
+
+- 游戏改进提交：`624f94bf718cc81ae869cef07af323f30be53df4`。
+- 产物精确 ID / OIDC 部署修复：`8e154cecd8b116bba4c711074d93d2e62f46b55b`。
+- Linux / Chromium Checks：https://github.com/yunhanhai/mosslight/actions/runs/44923400171 — success。
+- Pages 部署：https://github.com/yunhanhai/mosslight/actions/runs/44923400218 — success。
+- 本地 48 项逻辑 / 存档 / 几何 / 构建检查通过；浏览器场景套件 31 通过、3 项手机专用用例在桌面跳过，面板套件 18 通过，合计 49 通过。
+- 公网桌面 / 手机均实际加载 1.3.0；设置保存、12 条图鉴、8 项暂停属性、升级 / 换选、地图角落 / 画外巨蛾、结算足迹与同种子重试通过；完整 7 模块版本参数一致，无检测到的页面 / 资源错误。
+- 构建验证 `build-verification-v1.3.json`、公网验证 `online-verification-v1.3.json`、五种尺寸的 25 个面板状态 `layout-verification-v1.3.json` 已保存。
+- GitHub 与 Gitee 的 main 均同步；版本页：https://github.com/yunhanhai/mosslight/releases/tag/v1.3.0。
+- 原最高成绩和音效偏好保留，新增本地设置与最近八局足迹，不包含云存档。真实 iOS 和低端设备人工验证仍未完成。
+
 ## v1.2.0 发布验证
 
 - 游戏提交：`8ecbc38e1c7a78acf29c76d1dec74de7097d9976`。
