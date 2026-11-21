@@ -16,12 +16,16 @@
 | v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）          |
 | v1.1.0                        | 已部署并完成桌面 / 手机公网验证；25 项逻辑/构建测试、23 项浏览器流程通过 |
 
-## v1.2.0 候选验证
+## v1.2.0 发布验证
 
-- 本地 35 项逻辑/构建测试、31 项浏览器流程通过，3 项手机专用用例在桌面跳过。
-- 四种尺寸完成菜单、游戏、升级和结算截图；另核对地图角落与画外巨蛾指示。
-- 构建产物实测见 build-verification-v1.2.json，新增换选、边界取景和方向提示可用。
-- 远端部署与公网验证结果将在本次发布完成后追加。
+- 游戏提交：`8ecbc38e1c7a78acf29c76d1dec74de7097d9976`。
+- Linux / Chromium Checks：https://github.com/yunhanhai/mosslight/actions/runs/44897444469 — success。
+- Pages 部署：https://github.com/yunhanhai/mosslight/actions/runs/44897444479 — success。
+- 本地 35 项逻辑 / 构建测试、31 项浏览器流程通过；3 项手机专用用例在桌面跳过。
+- 公网桌面 / 手机均返回 1.2.0，实测三选一、一次换选、暂停 / 继续、角落角色安全取景与画外巨蛾提示；所有模块使用统一版本号，无检测到的页面或资源错误。
+- 构建验证：build-verification-v1.2.json；公网验证：online-verification-v1.2.json。
+- 版本发布页：https://github.com/yunhanhai/mosslight/releases/tag/v1.2.0
+- 本地记录 key 未改变。真实 iOS / 低端设备人工验证仍待完成。
 
 ## 远端
 
@@ -39,7 +43,7 @@
 - 原始验证记录：`online-verification-v1.1.json`；构建验证：`build-verification.json`；优化 A/B 指标：`optimization-v1.1.json`。
 - 本地：25 项逻辑 / 构建测试通过，23 项浏览器流程通过，3 项手机专用用例在桌面跳过；截图覆盖四种尺寸与升级、结算、巨蛾蓄力。
 - 版本发布页：https://github.com/yunhanhai/mosslight/releases/tag/v1.1.0
-- 此次保留原有花园视觉与本地记录。真实 iOS / 低端设备人工测试仍未代替，详见 TESTING.md。
+- 此次保留原有花园视觉与本地记录。真实 iOS / 低端设备人工验证仍待完成，详见 TESTING.md。
 
 ## 首次发布验证
 
