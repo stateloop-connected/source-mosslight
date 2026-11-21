@@ -2,6 +2,8 @@
 
 日期：2026-11-21（Asia/Shanghai）。
 
+v1.3 发布维护日期：2026-11-22（Asia/Shanghai）。
+
 ## 状态
 
 | 项目                          | 状态                                                                     |
@@ -55,6 +57,8 @@
 - 线上浏览器验证：桌面与手机均加载本地字体与脚本、进入游戏、显示三选一能力、选择后继续、暂停 / 继续；没有页面错误或资源 HTTP 错误。原始结果在 `online-verification.json`。
 
 ## 发布约定
+
+v1.3 首次部署在构建、上传和 REST 可见性检查均成功后，`deploy-pages@v4` 的任务内发现仍返回 0。现保留原有权限和 OIDC 身份校验，使用 `upload-pages-artifact` 返回的精确 ID，通过与官方 action 相同的 Pages REST 创建 / 查询 / 取消接口发布；等待最多十分钟，失败取消未完成任务。不使用个人令牌作为工作流部署凭据。官方实现参考：https://github.com/actions/deploy-pages/blob/v4/src/internal/api-client.js；上传输出定义：https://github.com/actions/upload-pages-artifact/blob/v3/action.yml。
 
 - GitHub remote 名称 `origin`，Gitee remote 名称 `gitee`；主分支 `main`。
 - 构建产物 `dist/` 不进入源码 Git；GitHub Pages 从工作流上传静态构建。

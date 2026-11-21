@@ -14,6 +14,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -26,6 +27,7 @@ jobs:
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
+        id: upload
         with:
           path: dist
       - name: Wait for Pages artifact to become visible
@@ -42,4 +44,57 @@ jobs:
           exit 1
       - name: Publish
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/github-script@v8
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+        with:
+          script: |
+            // Use the upload's exact ID: the artifact REST API can already see
+            // it while deploy-pages' job-scoped discovery still returns zero.
+            const repo = context.repo;
+            const artifactId = Number(process.env.PAGES_ARTIFACT_ID);
+            if (!Number.isSafeInteger(artifactId) || artifactId <= 0)
+              throw new Error('Upload did not return a valid artifact ID.');
+            const { data: artifact } = await github.request(
+              'GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}',
+              { ...repo, artifact_id: artifactId }
+            );
+            if (artifact.expired || artifact.name !== 'github-pages')
+              throw new Error('The uploaded Pages artifact is unavailable.');
+            const idToken = await core.getIDToken();
+            core.setSecret(idToken);
+            const { data: deployment } = await github.request(
+              'POST /repos/{owner}/{repo}/pages/deployments',
+              { ...repo, artifact_id: artifactId,
+                pages_build_version: context.sha, oidc_token: idToken }
+            );
+            const deploymentId = deployment.id || deployment.status_url?.split('/').pop();
+            if (!deploymentId) throw new Error('Pages did not return a deployment ID.');
+            core.setOutput('page_url', deployment.page_url);
+            const failed = new Set(['deployment_failed', 'deployment_perms_error',
+              'deployment_content_failed', 'deployment_cancelled', 'deployment_lost']);
+            const deadline = Date.now() + 600000;
+            let succeeded = false;
+            try {
+              while (Date.now() < deadline) {
+                const { data } = await github.request(
+                  'GET /repos/{owner}/{repo}/pages/deployments/{deployment_id}',
+                  { ...repo, deployment_id: deploymentId }
+                );
+                if (data.status === 'succeed') {
+                  succeeded = true;
+                  core.info(`Pages deployment ${deploymentId} succeeded.`);
+                  return;
+                }
+                if (failed.has(data.status)) throw new Error(`Pages: ${data.status}`);
+                await new Promise(resolve => setTimeout(resolve, 5000));
+              }
+              throw new Error('Pages deployment timed out after ten minutes.');
+            } finally {
+              if (!succeeded) {
+                await github.request(
+                  'POST /repos/{owner}/{repo}/pages/deployments/{deployment_id}/cancel',
+                  { ...repo, deployment_id: deploymentId }
+                ).catch(() => core.warning('Could not cancel the incomplete deployment.'));
+              }
+            }
