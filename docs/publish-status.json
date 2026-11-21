@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-21",
+  "github": {
+    "url": "https://github.com/yunhanhai/mosslight",
+    "repository_created": true,
+    "pushed": false,
+    "public": true
+  },
+  "gitee": {
+    "url": "https://gitee.com/yunhanhai/mosslight",
+    "repository_created": true,
+    "pushed": false,
+    "public": false,
+    "visibility_note": "Gitee disallows making an empty repository public; retry after first push"
+  },
+  "pages": {
+    "workflow_prepared": true,
+    "deployment_verified": false
+  }
+}

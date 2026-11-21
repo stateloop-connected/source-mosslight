@@ -1,0 +1,23 @@
+{
+  "name": "mosslight",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "苔光守夜 — an original, dependency-free browser survival game",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs --dir dist",
+    "test": "node --test tests/core.test.mjs",
+    "test:browser": "playwright test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "prettier": "3.10.1"
+  }
+}

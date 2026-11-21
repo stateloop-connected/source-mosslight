@@ -1,0 +1,26 @@
+[
+  {
+    "repository": "gabrielecirulli/2048",
+    "url": "https://github.com/gabrielecirulli/2048",
+    "license": "MIT",
+    "description": "The source code for 2048 ",
+    "readme_url": "https://github.com/gabrielecirulli/2048/blob/master/README.md",
+    "retrieved_at": "2026-11-21T07:32:50.679405+00:00"
+  },
+  {
+    "repository": "KilledByAPixel/LittleJS",
+    "url": "https://github.com/KilledByAPixel/LittleJS",
+    "license": "MIT",
+    "description": "Tiny fast 2D/3D HTML5 game engine with many features and no dependencies.",
+    "readme_url": "https://github.com/KilledByAPixel/LittleJS/blob/main/README.md",
+    "retrieved_at": "2026-11-21T07:32:54.327951+00:00"
+  },
+  {
+    "repository": "ricardo-foundry/canvas-vampire-survivors",
+    "url": "https://github.com/ricardo-foundry/canvas-vampire-survivors",
+    "license": "NOASSERTION",
+    "description": "A roguelike bullet-heaven survivor game built with pure HTML5 Canvas and vanilla JavaScript. Zero dependencies, runs in any modern browser.",
+    "readme_url": "https://github.com/ricardo-foundry/canvas-vampire-survivors/blob/main/README.md",
+    "retrieved_at": "2026-11-21T07:32:58.570955+00:00"
+  }
+]

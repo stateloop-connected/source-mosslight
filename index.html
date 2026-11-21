@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#142d2b" />
+    <meta
+      name="description"
+      content="借一点萤火，守到天亮。苔光守夜是一款原创免费网页生存游戏，移动、收集、成长，在夜间花园守住三分钟。"
+    />
+    <title>苔光守夜 Mosslight · 借一点萤火，守到天亮</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg class="icon-defs" aria-hidden="true">
+      <defs>
+        <symbol id="i-leaf" viewBox="0 0 24 24">
+          <path d="M19 4C9 3 4 7 5 13s9 8 12 1c1-3 1-6 2-10Z" />
+          <path d="m4 21 9-11m-6 7-1-5m5 0 5-1" />
+        </symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24">
+          <path d="m11 5-6 4H2v6h3l6 4Zm5 3c3 2 3 6 0 8m3-11c5 4 5 10 0 14" />
+        </symbol>
+        <symbol id="i-muted" viewBox="0 0 24 24">
+          <path d="m11 5-6 4H2v6h3l6 4Zm5 4 6 6m0-6-6 6" />
+        </symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24">
+          <path d="M8 5v14M16 5v14" />
+        </symbol>
+        <symbol id="i-expand" viewBox="0 0 24 24">
+          <path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5" />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="i-spark" viewBox="0 0 24 24">
+          <path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5Z" />
+        </symbol>
+        <symbol id="i-heart" viewBox="0 0 24 24">
+          <path
+            d="M12 20S2 14 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 6-10 12-10 12Z"
+          />
+        </symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24">
+          <path d="m14 2-9 12h6l-1 8 9-12h-6Z" />
+        </symbol>
+        <symbol id="i-x" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M6 18 18 6" />
+        </symbol>
+        <symbol id="i-help" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9 9a3 3 0 0 1 6 0c0 3-3 2-3 5m0 3v.1" />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="苔光守夜首页"
+          ><svg class="brand-mark"><use href="#i-leaf" /></svg
+          ><span>苔光守夜<small>Mosslight</small></span></a
+        >
+        <p class="header-note">一片花园，一场小小的冒险。</p>
+        <nav class="tools" aria-label="游戏工具">
+          <button class="text-button" id="help-button">
+            <svg><use href="#i-help" /></svg><span>怎么玩</span>
+          </button>
+          <button
+            class="icon-button"
+            id="sound-button"
+            aria-label="开启音效"
+            aria-pressed="false"
+          >
+            <svg><use id="sound-icon" href="#i-muted" /></svg>
+          </button>
+          <button
+            class="icon-button desktop-only"
+            id="fullscreen-button"
+            aria-label="全屏游戏"
+          >
+            <svg><use href="#i-expand" /></svg>
+          </button>
+        </nav>
+      </header>
+
+      <p id="storage-warning" class="storage-warning" role="status" hidden>
+        浏览器未允许保存记录；本次游玩仍然可用，关闭页面后成绩不会保留。
+      </p>
+      <main>
+        <section class="garden" id="garden" aria-label="苔光守夜游戏区域">
+          <canvas
+            id="game"
+            tabindex="0"
+            aria-label="游戏画面。使用 WASD 或方向键移动，空格冲刺，P 或 Esc 暂停。攻击自动进行。"
+            >你的浏览器不支持 Canvas，请使用新版 Chrome、Edge、Firefox 或
+            Safari。</canvas
+          >
+
+          <div class="hud" id="hud" hidden>
+            <div class="hud-left">
+              <div class="health">
+                <svg><use href="#i-heart" /></svg
+                ><span class="bar"><i id="hp-fill"></i></span
+                ><b id="hp-text">100</b>
+              </div>
+              <div class="level-line">
+                <span id="level-text">Lv. 1</span
+                ><span class="bar xp"><i id="xp-fill"></i></span>
+              </div>
+            </div>
+            <div class="hud-time">
+              <strong id="timer">03:00</strong
+              ><span id="phase-text">露水初降</span>
+            </div>
+            <div class="hud-right">
+              <span class="kill-count"
+                ><svg><use href="#i-spark" /></svg><b id="kill-text">0</b></span
+              ><button
+                class="icon-button"
+                id="pause-button"
+                aria-label="暂停游戏"
+              >
+                <svg><use href="#i-pause" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="boss-hud" id="boss-hud" hidden>
+            <span>噬光巨蛾</span>
+            <div class="bar"><i id="boss-fill"></i></div>
+          </div>
+
+          <div class="menu-panel" id="menu-panel">
+            <div class="menu-copy">
+              <h1>借一点萤火，<br />守到天亮。</h1>
+              <p>
+                夜色落进花园，微光还在生长。<br />带上你的萤火，开始今晚的守望。
+              </p>
+              <fieldset class="mode-picker">
+                <legend class="sr-only">选择游戏模式</legend>
+                <label
+                  ><input type="radio" name="mode" value="night" checked /><span
+                    >守夜 <small>3 分钟</small></span
+                  ></label
+                ><label
+                  ><input type="radio" name="mode" value="practice" /><span
+                    >练习 <small>90 秒</small></span
+                  ></label
+                >
+              </fieldset>
+              <button class="start-button" id="start-button">
+                进入花园<svg><use href="#i-arrow" /></svg>
+              </button>
+              <p class="menu-hint">
+                <span class="keyboard-hint"
+                  ><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动
+                  <span class="hint-divider">/</span> <kbd>空格</kbd> 冲刺</span
+                ><span class="touch-hint">拖动左下摇杆移动，右侧按钮冲刺</span>
+              </p>
+            </div>
+            <div class="character-note">
+              <span></span>你的守夜人<small>萤火会自动寻找敌人</small>
+            </div>
+          </div>
+
+          <div class="bottom-hud" id="bottom-hud" hidden>
+            <div class="equipped" id="equipped" aria-label="已获得的能力"></div>
+            <div class="dash-status">
+              <svg><use href="#i-bolt" /></svg
+              ><span id="dash-text">空格 · 冲刺就绪</span
+              ><span class="bar"><i id="dash-fill"></i></span>
+            </div>
+          </div>
+          <div class="touch-controls" id="touch-controls" hidden>
+            <div class="joystick" id="joystick" aria-label="拖动以移动">
+              <span id="joystick-knob"></span>
+            </div>
+            <button class="dash-button" id="dash-button" aria-label="冲刺">
+              <svg><use href="#i-bolt" /></svg><span>冲刺</span>
+            </button>
+          </div>
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+          <div class="overlay" id="overlay" hidden>
+            <section
+              class="dialog"
+              id="dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dialog-title"
+              tabindex="-1"
+            ></section>
+          </div>
+        </section>
+
+        <section class="field-notes" aria-label="守夜手记">
+          <div class="field-title">
+            <svg><use href="#i-leaf" /></svg
+            ><span>守夜手记<small>每一点微光，都算数。</small></span>
+          </div>
+          <dl class="records">
+            <div>
+              <dt>最高微光</dt>
+              <dd id="record-score">0</dd>
+            </div>
+            <div>
+              <dt>成功守夜</dt>
+              <dd><span id="record-wins">0</span><small> 次</small></dd>
+            </div>
+            <div>
+              <dt>最久守望</dt>
+              <dd id="record-time">00:00</dd>
+            </div>
+          </dl>
+          <p class="local-note" id="local-note">
+            记录保存在这台设备上<br />无需登录，随时回来
+          </p>
+        </section>
+      </main>
+      <footer>
+        <span>慢一点，微光会等你。</span
+        ><span>原创网页小游戏 <span class="footer-dot">·</span> v1.0.0</span>
+      </footer>
+    </div>
+    <noscript
+      ><p class="noscript">
+        请在浏览器中启用 JavaScript 后开始游戏。
+      </p></noscript
+    >
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
