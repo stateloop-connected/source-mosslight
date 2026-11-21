@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-21",
+  "results": [
+    {
+      "device": "desktop",
+      "url": "https://yunhanhai.github.io/mosslight/",
+      "http": 200,
+      "title": "苔光守夜 Mosslight · 借一点萤火，守到天亮",
+      "playing": true,
+      "touchVisible": true,
+      "upgradeChoices": 3,
+      "paused": true,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "url": "https://yunhanhai.github.io/mosslight/",
+      "http": 200,
+      "title": "苔光守夜 Mosslight · 借一点萤火，守到天亮",
+      "playing": true,
+      "touchVisible": true,
+      "upgradeChoices": 3,
+      "paused": true,
+      "errors": []
+    }
+  ]
+}

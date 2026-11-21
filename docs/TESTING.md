@@ -32,6 +32,12 @@
 - 真人反馈与长期平衡；当前数值为首版。
 - 在线多人、排行、云存档不在首版范围。
 
+## 远端与公网验证
+
+- GitHub Actions 在 Ubuntu / Playwright Chromium 上完成 Checks，结果 success；链接与对应代码提交见 RELEASE.md。
+- GitHub Pages 部署成功，公网入口返回 HTTP 200。
+- 在公网地址分别使用桌面 / 手机上下文验证开始、升级三选一、选择能力、暂停与继续，全部通过，无页面或资源错误；结果存于 `online-verification.json`。
+
 ## 复现
 
 `npm ci` 后执行测试命令。Windows 会自动使用本机 Edge；Linux CI 使用 Playwright Chromium。截屏脚本需要先启动 `npm start`。不要同时启动多个浏览器截图任务，以免浏览器设备模拟设置互相影响。

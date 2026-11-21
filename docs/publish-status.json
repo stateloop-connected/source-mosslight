@@ -3,18 +3,34 @@
   "github": {
     "url": "https://github.com/yunhanhai/mosslight",
     "repository_created": true,
-    "pushed": false,
-    "public": true
+    "pushed": true,
+    "public": true,
+    "anonymous_api_http": 200
   },
   "gitee": {
     "url": "https://gitee.com/yunhanhai/mosslight",
     "repository_created": true,
-    "pushed": false,
-    "public": false,
-    "visibility_note": "Gitee disallows making an empty repository public; retry after first push"
+    "pushed": true,
+    "public": true,
+    "visibility_note": "Public visibility set successfully after first push; anonymous API verified",
+    "anonymous_api_http": 200
   },
   "pages": {
     "workflow_prepared": true,
-    "deployment_verified": false
+    "deployment_verified": true,
+    "url": "https://yunhanhai.github.io/mosslight/",
+    "enabled": true,
+    "http": 200,
+    "workflow_result": "success",
+    "workflow_attempt": 2,
+    "desktop_and_mobile_browser_checks": "passed"
+  },
+  "code_revision": "458683c89e05f9c2072728d572acad0115deb4d6",
+  "checks": {
+    "github_actions": "success",
+    "unit_tests": 19,
+    "browser_tests_passed": 17,
+    "browser_tests_skipped": 1,
+    "independent_review_fix_verdict": "ship"
   }
 }

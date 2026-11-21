@@ -4,6 +4,8 @@
 
 一款原创中文网页生存游戏：在月下花园中移动、躲开虫影、拾取微光，组合属于这一夜的能力。萤火自动攻击，存活至黎明即可获胜。
 
+**[在线试玩](https://yunhanhai.github.io/mosslight/)** · [GitHub 源码](https://github.com/yunhanhai/mosslight) · [Gitee 镜像](https://gitee.com/yunhanhai/mosslight)
+
 ![苔光守夜桌面画面](docs/screenshots/desktop.png)
 
 ## 立即在本地玩
