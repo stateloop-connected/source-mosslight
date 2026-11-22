@@ -271,6 +271,154 @@ h1 + p {
     background 0.18s,
     transform 0.18s;
 }
+.keeper-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 300px);
+  min-height: 56px;
+  background: transparent;
+  border-block: 1px solid var(--line);
+  color: var(--ink);
+  text-align: left;
+  padding: 8px 0;
+  margin: 0 0 16px;
+}
+.keeper-button:hover {
+  color: var(--leaf);
+}
+.keeper-button > svg {
+  width: 22px;
+  height: 22px;
+  color: var(--leaf);
+}
+.keeper-button strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.keeper-button small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.keeper-change {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--leaf);
+}
+.keeper-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+.keeper-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 108px;
+  padding: 18px 12px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+.keeper-option:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.keeper-option:has(input:checked) {
+  background: #d1e2a119;
+}
+.keeper-option input {
+  accent-color: var(--leaf);
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: none;
+}
+.keeper-option > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--leaf);
+}
+.keeper-option strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+}
+.keeper-option small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 3px 0;
+}
+.keeper-option > span > span {
+  font-size: 11px;
+  color: var(--gold);
+  display: block;
+}
+.keeper-option > span > .keeper-detail {
+  color: var(--muted);
+}
+.result-details {
+  margin: 18px 0 0;
+  text-align: left;
+  border-block: 1px solid var(--line);
+}
+.result-details summary {
+  min-height: 44px;
+  padding: 10px 0;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+}
+.combat-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 8px 0 16px;
+  gap: 14px;
+}
+.combat-stats dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.combat-stats dd {
+  font-size: 14px;
+  margin: 3px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+.result-details > p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 12px 0;
+}
+@media (max-width: 700px) {
+  .keeper-button {
+    margin-bottom: 14px;
+    max-width: 280px;
+  }
+  .keeper-option {
+    gap: 10px;
+    padding: 14px 4px;
+  }
+  .keeper-option > svg {
+    width: 23px;
+    height: 23px;
+  }
+  .keeper-option small {
+    font-size: 11px;
+  }
+  .combat-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .keeper-button {
+    position: absolute;
+    left: 100%;
+    top: 54px;
+    width: 235px;
+    margin-left: 22px;
+  }
+}
 .start-button:hover {
   background: #e1efb9;
   transform: translateY(-2px);

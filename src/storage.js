@@ -1,4 +1,4 @@
-import { UPGRADES, MODES, scoreFor, clamp } from "./core.js";
+import { UPGRADES, MODES, KEEPERS, scoreFor, clamp } from "./core.js";
 
 const KEY = "mosslight:v1";
 export const HISTORY_LIMIT = 8;
@@ -11,6 +11,7 @@ export const blankRecord = () => ({
   volume: 0.65,
   effects: "auto",
   controls: "auto",
+  keeper: "lantern",
   history: [],
 });
 const number = (n, fallback = 0, max = Number.MAX_SAFE_INTEGER) =>
@@ -31,6 +32,7 @@ function cleanRun(run) {
   }
   return {
     mode: run.mode,
+    keeper: Object.hasOwn(KEEPERS, run.keeper) ? run.keeper : "lantern",
     outcome: run.outcome,
     seed: run.seed >>> 0,
     endedAt: Math.floor(number(run.endedAt, 0, 8640000000000000)),
@@ -40,6 +42,15 @@ function cleanRun(run) {
     level: Math.max(1, Math.floor(number(run.level, 1, 1000))),
     bossDefeated: run.bossDefeated === true,
     build,
+    metrics:
+      run.metrics && typeof run.metrics === "object"
+        ? {
+            damageDealt: number(run.metrics.damageDealt),
+            damageTaken: number(run.metrics.damageTaken),
+            dashes: Math.floor(number(run.metrics.dashes)),
+            healed: number(run.metrics.healed),
+          }
+        : null,
   };
 }
 export function loadRecord(storage) {
@@ -53,6 +64,7 @@ export function loadRecord(storage) {
     record.sound = v.sound === true;
     record.bestTime = Math.min(180, record.bestTime);
     record.volume = number(v.volume, 0.65, 1);
+    if (Object.hasOwn(KEEPERS, v.keeper)) record.keeper = v.keeper;
     if (["auto", "reduced"].includes(v.effects)) record.effects = v.effects;
     if (["auto", "keyboard", "touch"].includes(v.controls))
       record.controls = v.controls;
@@ -75,6 +87,7 @@ export function completeRun(record, game, endedAt = Date.now()) {
   };
   const run = cleanRun({
     mode: game.mode,
+    keeper: game.keeper,
     seed: game.seed,
     endedAt,
     outcome: game.endReason === "abandoned" ? "abandoned" : game.status,
@@ -84,6 +97,7 @@ export function completeRun(record, game, endedAt = Date.now()) {
     level: game.level,
     bossDefeated: game.bossDefeated,
     build: game.build,
+    metrics: game.metrics,
   });
   if (!run) throw new Error("Only completed runs can be recorded");
   return {

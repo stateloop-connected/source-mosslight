@@ -1,5 +1,6 @@
 import {
   Game,
+  KEEPERS,
   UPGRADES,
   clamp,
   timeText,
@@ -15,6 +16,8 @@ import {
   guidePanel,
   settingsPanel,
   journalPanel,
+  keeperPanel,
+  runDetails,
 } from "./panels.js";
 import { Audio } from "./audio.js";
 import { edgeIndicator } from "./view.js";
@@ -128,6 +131,7 @@ export const getSession = () => ({
   screen,
   record,
   view: renderer.getView(),
+  effects: { reduced: renderer.reduced, active: renderer.effects.length },
 });
 const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const phases = [
@@ -145,6 +149,15 @@ function records() {
   $("record-time").textContent = timeText(record.bestTime);
   $("storage-warning").hidden = storageAvailable;
   $("local-note").hidden = !storageAvailable;
+}
+function keeperUI() {
+  const k = KEEPERS[record.keeper];
+  text("keeper-name", k.name);
+  text("keeper-summary", k.summary);
+  attr("keeper-icon", "href", `#i-${k.icon}`);
+  preview.keeper = record.keeper;
+  preview.stats.orbit = k.stats.orbit || 0;
+  renderDirty = true;
 }
 function save() {
   storageAvailable = saveRecord(record);
@@ -235,12 +248,14 @@ function start(options = {}) {
       options.mode ||
       document.querySelector('input[name="mode"]:checked').value,
     seed: options.seed,
+    keeper: options.keeper || record.keeper,
   });
   document.querySelector(`input[name="mode"][value="${game.mode}"]`).checked =
     true;
   panelStack = [];
   screen = "playing";
   renderer.effects = [];
+  renderer.hurtTime = 0;
   lastSaved = null;
   resetInput();
   hideDialog();
@@ -346,9 +361,9 @@ function showResult() {
       ? "你驱散了巨蛾，也迎来了清晨。"
       : "你守住了这一夜，每一点微光都没有白费。"
     : "休整一下，换一种生长的方式再出发。";
-  const build = buildText(game.build);
+  const build = buildText(game.build, game.keeper);
   dialog(
-    `<div class="result-symbol">${icon(won ? "leaf" : "spark")}</div><h2 id="dialog-title">${title}</h2><p class="intro">${description}</p>${resultBest.score || resultBest.time ? `<p class="new-best" role="status">${[resultBest.score && "最高微光新纪录", resultBest.time && "最久守望新纪录"].filter(Boolean).join(" · ")}</p>` : ""}<div class="result-stats"><div><b>${score.toLocaleString("zh-CN")}</b><span>本局微光</span></div><div><b>${timeText(game.elapsed)}</b><span>守望时间</span></div><div><b>${game.kills}</b><span>驱散虫影</span></div></div><p class="result-build">${build}</p><p class="result-build">Lv. ${game.level} · ${game.bossDefeated ? "已驱散巨蛾" : "未驱散巨蛾"} · 种子 ${game.seed}</p>${practice ? '<p class="result-build">练习局已记入足迹，不影响正式纪录</p>' : ""}<div class="dialog-actions"><button class="start-button" data-action="restart">再守一夜</button><button class="secondary-button" data-action="retry">同种子重试</button><button class="secondary-button" data-action="menu">回到花园</button></div><div class="panel-links"><button data-action="journal">查看守夜足迹</button><button data-action="guide">花园图鉴</button></div><p class="panel-note">同种子重试会保留模式与随机起点，操作和视口会影响后续进程。</p>`,
+    `<div class="result-symbol">${icon(won ? "leaf" : "spark")}</div><h2 id="dialog-title">${title}</h2><p class="intro">${description}</p>${resultBest.score || resultBest.time ? `<p class="new-best" role="status">${[resultBest.score && "最高微光新纪录", resultBest.time && "最久守望新纪录"].filter(Boolean).join(" · ")}</p>` : ""}<div class="result-stats"><div><b>${score.toLocaleString("zh-CN")}</b><span>本局微光</span></div><div><b>${timeText(game.elapsed)}</b><span>守望时间</span></div><div><b>${game.kills}</b><span>驱散虫影</span></div></div><p class="result-build">${build}</p><p class="result-build">${KEEPERS[game.keeper].name} · Lv. ${game.level} · ${game.bossDefeated ? "已驱散巨蛾" : "未驱散巨蛾"} · 种子 ${game.seed}</p>${practice ? '<p class="result-build">练习局已记入足迹，不影响正式纪录</p>' : ""}<div class="dialog-actions"><button class="start-button" data-action="restart">再守一夜</button><button class="secondary-button" data-action="retry">同种子重试</button><button class="secondary-button" data-action="menu">回到花园</button></div>${runDetails(game)}<div class="panel-links"><button data-action="journal">查看守夜足迹</button><button data-action="guide">花园图鉴</button></div><p class="panel-note">同种子重试会保留守夜人、模式与随机起点，操作和视口会影响后续进程。</p>`,
   );
 }
 function help() {
@@ -359,8 +374,9 @@ function renderHelp() {
     `<h2 id="dialog-title">做一晚花园的守夜人</h2><p class="intro">移动躲开虫影，萤火会自动照亮最近的敌人。</p><div class="help-content"><p><b>收集，再生长</b><br>拾起敌人留下的金色微光。升级后，从三种能力中选择一种，组合出这一局的成长路线。不合适时可换一组，每局一次，不消耗经验。</p><p><b>留一点风给自己</b><br><span class="help-keyboard">WASD / 方向键移动，空格冲刺。</span>触屏可拖动左下摇杆，也可在画面左半侧拖动。点右侧按钮冲刺，可短暂免伤并推开身边的虫影；冷却后可再次使用。</p><p><b>守到黎明</b><br>标准守夜 3 分钟，练习 90 秒。虫群会逐渐变密，最后会出现噬光巨蛾；巨蛾会先显示粉色路线，再向该方向俯冲；看到蓄力后横向躲开；画面外的巨蛾会用边缘箭头提示方向。存活到天亮即可获胜，击败巨蛾会掉落大量微光。</p><p class="help-warning">P / Esc 暂停或继续；数字键 1–3 选能力。切换窗口会自动暂停。声音可在右上角开启；记录仅保存在本机，练习局不计入正式记录。</p></div><button class="start-button" data-action="close-help">我知道了</button>`,
   );
 }
-const panels = new Set(["help", "guide", "settings", "journal"]);
+const panels = new Set(["help", "guide", "settings", "journal", "keeper"]);
 function renderPanel(kind) {
+  if (kind === "keeper") dialog(keeperPanel(record.keeper));
   if (kind === "help") renderHelp();
   if (kind === "guide") dialog(guidePanel(game));
   if (kind === "settings") dialog(settingsPanel(record, storageAvailable));
@@ -454,6 +470,7 @@ function updateHUD(force = false, now = performance.now()) {
 }
 
 $("start-button").addEventListener("click", start);
+$("keeper-button").addEventListener("click", () => openPanel("keeper"));
 $("help-button").addEventListener("click", help);
 $("guide-button").addEventListener("click", () => openPanel("guide"));
 $("settings-button").addEventListener("click", () => openPanel("settings"));
@@ -485,7 +502,7 @@ $("dialog").addEventListener("click", (e) => {
     (!game || ["won", "lost"].includes(game.status))
   ) {
     const run = record.history[Number(replay.dataset.replay)];
-    if (run) start({ mode: run.mode, seed: run.seed });
+    if (run) start({ mode: run.mode, seed: run.seed, keeper: run.keeper });
     return;
   }
   const upgrade = e.target.closest("[data-upgrade]");
@@ -506,8 +523,9 @@ $("dialog").addEventListener("click", (e) => {
       game.emit("end");
       showResult();
     },
-    restart: start,
-    retry: () => start({ mode: game.mode, seed: game.seed }),
+    restart: () => start({ mode: game.mode, keeper: game.keeper }),
+    retry: () =>
+      start({ mode: game.mode, seed: game.seed, keeper: game.keeper }),
     menu,
     guide: () => openPanel("guide"),
     settings: () => openPanel("settings"),
@@ -521,7 +539,11 @@ $("dialog").addEventListener("input", (e) => {
   const node = e.target,
     setting = node.dataset.setting;
   if (!setting) return;
-  if (setting === "sound") {
+  if (setting === "keeper") {
+    if (!Object.hasOwn(KEEPERS, node.value)) return;
+    record.keeper = node.value;
+    keeperUI();
+  } else if (setting === "sound") {
     audio.enabled = node.checked;
     audio.unlock();
     record.sound = audio.enabled;
@@ -605,6 +627,10 @@ document.addEventListener("visibilitychange", () => {
 $("dash-button").addEventListener("pointerdown", (e) => {
   e.preventDefault();
   triggerDash();
+});
+$("dash-button").addEventListener("click", (e) => {
+  // Pointer presses fire immediately; detail 0 is keyboard / assistive activation.
+  if (e.detail === 0) triggerDash();
 });
 function triggerDash() {
   if (screen === "playing")
@@ -697,6 +723,7 @@ matchMedia("(prefers-reduced-motion: reduce)").addEventListener(
   applyPreferences,
 );
 applyPreferences();
+keeperUI();
 records();
 soundUI();
 function frame(now) {

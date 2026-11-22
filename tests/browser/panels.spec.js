@@ -189,3 +189,114 @@ test("settings remain usable when storage becomes unavailable during a save", as
   await page.locator("#start-button").click();
   expect((await state(page)).status).toBe("playing");
 });
+test("keeper selection persists and each run starts with its actual stats", async ({
+  page,
+}) => {
+  await page.locator("#keeper-button").click();
+  await page.locator('input[value="leaf"]').check();
+  await page.getByRole("button", { name: "完成选择", exact: true }).click();
+  await expect(page.locator("#keeper-name")).toHaveText("护叶");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.locator("#keeper-name")).toHaveText("护叶");
+  await page.locator("#start-button").click();
+  const model = await page.evaluate(async () => {
+    const g = (await import("/src/main.js")).getSession().game;
+    return {
+      keeper: g.keeper,
+      hp: g.player.hp,
+      orbit: g.stats.orbit,
+      build: g.build,
+    };
+  });
+  expect(model).toEqual({ keeper: "leaf", hp: 110, orbit: 6, build: {} });
+  await page.keyboard.press("p");
+  await expect(page.locator(".section-heading")).toContainText("护叶");
+});
+test("same-seed retry and journal replay preserve the keeper and combat summary", async ({
+  page,
+}) => {
+  await page.locator("#keeper-button").click();
+  await page.locator('input[value="wind"]').check();
+  await page.getByRole("button", { name: "完成选择", exact: true }).click();
+  await page.locator("#start-button").click();
+  await page.keyboard.press("Space");
+  const seed = (await state(page)).seed;
+  await page.keyboard.press("p");
+  await page.getByRole("button", { name: "结束本局", exact: true }).click();
+  await page.getByRole("button", { name: "结束并结算", exact: true }).click();
+  await page.getByText("这一夜的战斗明细", { exact: true }).click();
+  await expect(page.locator(".combat-stats")).toContainText("1 次");
+  expect((await state(page)).history[0].keeper).toBe("wind");
+  await page.getByRole("button", { name: "同种子重试", exact: true }).click();
+  expect((await state(page)).seed).toBe(seed);
+  expect(
+    await page.evaluate(
+      async () => (await import("/src/main.js")).getSession().game.keeper,
+    ),
+  ).toBe("wind");
+  await page.keyboard.press("p");
+  await page.getByRole("button", { name: "结束本局", exact: true }).click();
+  await page.getByRole("button", { name: "结束并结算", exact: true }).click();
+  await page.getByRole("button", { name: "查看守夜足迹", exact: true }).click();
+  await page.locator("[data-replay]").first().click();
+  expect(
+    await page.evaluate(
+      async () => (await import("/src/main.js")).getSession().game.keeper,
+    ),
+  ).toBe("wind");
+  await page.keyboard.press("p");
+  await page.getByRole("button", { name: "结束本局", exact: true }).click();
+  await page.getByRole("button", { name: "结束并结算", exact: true }).click();
+  await page.getByRole("button", { name: "再守一夜", exact: true }).click();
+  expect(
+    await page.evaluate(
+      async () => (await import("/src/main.js")).getSession().game.keeper,
+    ),
+  ).toBe("wind");
+});
+test("dash button supports native keyboard activation in the touch interface", async ({
+  page,
+}) => {
+  await page.locator("#settings-button").click();
+  await page.locator('input[value="touch"]').check();
+  await page.getByRole("button", { name: "完成", exact: true }).click();
+  await page.locator("#start-button").click();
+  await page.locator("#dash-button").focus();
+  await page.keyboard.press("Enter");
+  const dashes = await page.evaluate(
+    async () => (await import("/src/main.js")).getSession().game.metrics.dashes,
+  );
+  expect(dashes).toBe(1);
+});
+test("compact and landscape menus keep keeper and start controls reachable", async ({
+  page,
+}) => {
+  for (const size of [
+    { width: 320, height: 568 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(size);
+    await expect(page.locator("#keeper-button")).toBeVisible();
+    const overlap = await page.evaluate(() => {
+      const a = document
+          .querySelector("#keeper-button")
+          .getBoundingClientRect(),
+        b = document.querySelector("#start-button").getBoundingClientRect();
+      return (
+        a.left < b.right &&
+        a.right > b.left &&
+        a.top < b.bottom &&
+        a.bottom > b.top
+      );
+    });
+    expect(overlap).toBe(false);
+    await page.locator("#keeper-button").click();
+    await expect(page.locator(".keeper-option")).toHaveCount(3);
+    const geometry = await page.locator("#dialog").evaluate((n) => ({
+      width: n.scrollWidth <= n.clientWidth,
+      bottom: n.getBoundingClientRect().bottom <= innerHeight,
+    }));
+    expect(geometry).toEqual({ width: true, bottom: true });
+    await page.getByRole("button", { name: "完成选择", exact: true }).click();
+  }
+});

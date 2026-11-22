@@ -1,5 +1,37 @@
 export const WORLD = { width: 2000, height: 1500 };
 export const MAX_ENEMIES = 145;
+export const KEEPERS = {
+  lantern: {
+    name: "提灯",
+    desc: "均衡的萤火，适合初次守夜。",
+    icon: "spark",
+    stats: {},
+    summary: "生命 100 · 伤害 16 · 移速 175",
+    detail: "均衡起步 · 冲刺冷却 3.8 秒",
+  },
+  leaf: {
+    name: "护叶",
+    desc: "带着叶环出发，近身更从容。",
+    icon: "leaf",
+    stats: { maxHp: 110, damage: 13, speed: 165, orbit: 6, dashCooldown: 4.2 },
+    summary: "生命 110 · 叶环 6 · 移速 165",
+    detail: "萤火伤害 13 · 冲刺冷却 4.2 秒",
+  },
+  wind: {
+    name: "逐风",
+    desc: "脚步轻快，冲刺更频繁。",
+    icon: "bolt",
+    stats: { maxHp: 85, damage: 14, speed: 200, dashCooldown: 2.9 },
+    summary: "生命 85 · 移速 200 · 冲刺 2.9 秒",
+    detail: "萤火伤害 14 · 无初始叶环",
+  },
+};
+export const ENEMY_NAMES = {
+  mite: "苔螨",
+  beetle: "甲虫",
+  wisp: "游光",
+  boss: "噬光巨蛾",
+};
 export const MODES = {
   night: {
     label: "守夜",
@@ -75,7 +107,7 @@ export const UPGRADES = [
     icon: "heart",
     apply: (s, g) => {
       s.maxHp += 20;
-      g.player.hp = Math.min(s.maxHp, g.player.hp + 40);
+      g.heal(40);
     },
   },
   {
@@ -96,7 +128,7 @@ export const UPGRADES = [
     icon: "bolt",
     apply: (s, g) => {
       s.dashCooldown *= 0.8;
-      g.player.hp = Math.min(s.maxHp, g.player.hp + 15);
+      g.heal(15);
     },
   },
 ];
@@ -126,9 +158,25 @@ export const scoreFor = (g) =>
       (g.status === "won" ? 1200 : 0),
   );
 export const xpFor = (level) => 8 + level * 5;
+// Earliest swept-circle entry on a segment. Also works in relative coordinates
+// for two moving objects, avoiding endpoint misses and array-order hits.
+export function sweepCircle(from, to, center, radius) {
+  const x = from.x - center.x,
+    y = from.y - center.y,
+    dx = to.x - from.x,
+    dy = to.y - from.y,
+    c = x * x + y * y - radius * radius;
+  if (c <= 0) return 0;
+  const a = dx * dx + dy * dy;
+  if (a <= 1e-12) return null;
+  const b = x * dx + y * dy,
+    discriminant = b * b - a * c;
+  if (discriminant < 0) return null;
+  const t = (-b - Math.sqrt(discriminant)) / a;
+  return t >= 0 && t <= 1 ? t : null;
+}
 export function upgradePreview(id, game) {
-  const s = game.stats,
-    level = game.build[id] || 0;
+  const s = game.stats;
   const number = (n) => Number(n.toFixed(1));
   return (
     {
@@ -138,17 +186,18 @@ export function upgradePreview(id, game) {
       speed: `移速 ${Math.round(s.speed)} → ${Math.round(s.speed * 1.16)}`,
       magnet: `吸引 ${Math.round(s.magnet)} → ${Math.round(s.magnet * 1.5)}`,
       vitality: `生命上限 ${s.maxHp} → ${s.maxHp + 20}`,
-      orbit: `叶环伤害 ${level * 10} → ${(level + 1) * 10}`,
+      orbit: `叶环伤害 ${s.orbit} → ${s.orbit + 10}`,
       dash: `冷却 ${number(s.dashCooldown)} → ${number(s.dashCooldown * 0.8)} 秒`,
     }[id] || ""
   );
 }
 
 export class Game {
-  constructor({ mode = "night", seed = Date.now() } = {}) {
+  constructor({ mode = "night", seed = Date.now(), keeper = "lantern" } = {}) {
     this.mode = Object.hasOwn(MODES, mode) ? mode : "night";
     this.rules = MODES[this.mode];
     this.seed = seed >>> 0;
+    this.keeper = Object.hasOwn(KEEPERS, keeper) ? keeper : "lantern";
     this.random = rng(this.seed);
     this.status = "playing";
     this.elapsed = 0;
@@ -179,7 +228,11 @@ export class Game {
       magnet: 78,
       orbit: 0,
       dashCooldown: 3.8,
+      ...KEEPERS[this.keeper].stats,
     };
+    this.player.hp = this.stats.maxHp;
+    this.metrics = { damageDealt: 0, damageTaken: 0, dashes: 0, healed: 0 };
+    this.lastHit = null;
     this.enemies = [];
     this.bullets = [];
     this.motes = [];
@@ -192,7 +245,6 @@ export class Game {
     this.bossSpawned = false;
     this.bossDefeated = false;
     this.wave = 0;
-    this.contactTimer = 0;
     this.viewport = { width: 1120, height: 660 };
     this.attackRange = 520;
     this.dashSerial = 0;
@@ -248,6 +300,7 @@ export class Game {
     p.lastY = p.dashY;
     p.dashTime = 0.19;
     this.dashSerial++;
+    this.metrics.dashes++;
     p.dashRemaining = this.stats.dashCooldown;
     p.invincible = Math.max(p.invincible, 0.42);
     this.emit("dash", { x: p.x, y: p.y });
@@ -357,9 +410,11 @@ export class Game {
   }
   damageEnemy(e, amount) {
     if (e.hp <= 0) return;
+    const dealt = Math.min(e.hp, amount);
+    this.metrics.damageDealt += dealt;
     e.hp -= amount;
     e.hit = 0.12;
-    this.emit("hit", { x: e.x, y: e.y, amount: Math.round(amount) });
+    this.emit("hit", { x: e.x, y: e.y, amount: Math.round(dealt) });
     if (e.hp <= 0) {
       this.kills++;
       this.emit("kill", { x: e.x, y: e.y, boss: e.type === "boss" });
@@ -375,6 +430,21 @@ export class Game {
         life: 35,
       });
     }
+  }
+  heal(amount) {
+    const restored = Math.min(
+      amount,
+      Math.max(0, this.stats.maxHp - this.player.hp),
+    );
+    if (restored <= 0) return 0;
+    this.player.hp += restored;
+    this.metrics.healed += restored;
+    this.emit("heal", {
+      x: this.player.x,
+      y: this.player.y,
+      amount: Math.round(restored),
+    });
+    return restored;
   }
   addXp(value) {
     this.xp += value;
@@ -394,9 +464,8 @@ export class Game {
       }
       this.choices = pool.slice(0, 3).map((u) => u.id);
       if (!this.choices.length) {
-        this.player.hp = Math.min(this.stats.maxHp, this.player.hp + 25);
+        this.heal(25);
         this.status = "playing";
-        this.emit("heal");
       } else this.emit("level", { level: this.level });
     }
   }
@@ -405,6 +474,7 @@ export class Game {
     const u = UPGRADES.find((u) => u.id === id);
     u.apply(this.stats, this);
     this.build[id] = (this.build[id] || 0) + 1;
+    this.player.invincible = Math.max(this.player.invincible, 0.65);
     this.choices = [];
     this.status = "playing";
     this.emit("upgrade", { id });
@@ -446,6 +516,7 @@ export class Game {
       return;
     }
     const p = this.player;
+    const playerFrom = { x: p.x, y: p.y };
     p.invincible = Math.max(0, p.invincible - dt);
     p.dashRemaining = Math.max(0, p.dashRemaining - dt);
     let ix = Number.isFinite(input.x) ? input.x : 0,
@@ -517,6 +588,7 @@ export class Game {
     for (const e of this.enemies) {
       if (e.hp <= 0) continue;
       e.hit = Math.max(0, e.hit - dt);
+      const enemyFrom = { x: e.x, y: e.y };
       const dx = p.x - e.x,
         dy = p.y - e.y,
         d = Math.hypot(dx, dy) || 1;
@@ -537,9 +609,10 @@ export class Game {
           }
         } else if (e.chargeRemaining > 0) {
           charging = true;
-          e.chargeRemaining = Math.max(0, e.chargeRemaining - dt);
-          e.x = clamp(e.x + e.chargeX * 330 * dt, 35, WORLD.width - 35);
-          e.y = clamp(e.y + e.chargeY * 330 * dt, 35, WORLD.height - 35);
+          const chargeDt = Math.min(dt, e.chargeRemaining);
+          e.chargeRemaining = Math.max(0, e.chargeRemaining - chargeDt);
+          e.x = clamp(e.x + e.chargeX * 330 * chargeDt, 35, WORLD.width - 35);
+          e.y = clamp(e.y + e.chargeY * 330 * chargeDt, 35, WORLD.height - 35);
         } else if (e.chargeCooldown <= 0) {
           e.windup = 0.85;
           e.chargeX = dx / d;
@@ -553,24 +626,60 @@ export class Game {
         e.x += (dx / d) * speed * dt;
         e.y += (dy / d) * speed * dt;
       }
+      const relativeFrom = {
+          x: enemyFrom.x - playerFrom.x,
+          y: enemyFrom.y - playerFrom.y,
+        },
+        relativeTo = { x: e.x - p.x, y: e.y - p.y },
+        origin = { x: 0, y: 0 };
+      const contact =
+        sweepCircle(relativeFrom, relativeTo, origin, e.radius + p.radius) !==
+        null;
+      const currentDx = p.x - e.x,
+        currentDy = p.y - e.y,
+        currentD = Math.hypot(currentDx, currentDy),
+        awayX = currentD > 0.001 ? -currentDx / currentD : Math.cos(e.id),
+        awayY = currentD > 0.001 ? -currentDy / currentD : Math.sin(e.id);
       if (
         dashing &&
-        d < e.radius + p.radius + 22 &&
+        sweepCircle(
+          relativeFrom,
+          relativeTo,
+          origin,
+          e.radius + p.radius + 22,
+        ) !== null &&
         e.lastDash !== this.dashSerial
       ) {
         e.lastDash = this.dashSerial;
         this.damageEnemy(e, this.stats.damage * 0.75);
-        e.x = clamp(e.x - (dx / d) * 72, 25, WORLD.width - 25);
-        e.y = clamp(e.y - (dy / d) * 72, 25, WORLD.height - 25);
+        if (
+          e.type !== "boss" ||
+          (!charging && e.windup <= 0 && e.chargeRemaining <= 0)
+        ) {
+          e.x = clamp(e.x + awayX * 72, 25, WORLD.width - 25);
+          e.y = clamp(e.y + awayY * 72, 25, WORLD.height - 25);
+        }
       }
-      if (this.stats.orbit > 0 && this.orbitTimer <= 0 && d < 82 + e.radius)
+      if (
+        this.stats.orbit > 0 &&
+        this.orbitTimer <= 0 &&
+        currentD < 82 + e.radius
+      )
         this.damageEnemy(e, this.stats.orbit);
-      if (e.hp > 0 && d < e.radius + p.radius && p.invincible <= 0) {
-        p.hp = Math.max(0, p.hp - e.damage * this.rules.damageScale);
+      if (e.hp > 0 && contact && p.invincible <= 0) {
+        const taken = Math.min(p.hp, e.damage * this.rules.damageScale);
+        p.hp = Math.max(0, p.hp - taken);
+        this.metrics.damageTaken += taken;
+        this.lastHit = { type: e.type, damage: taken };
         p.invincible = 0.85;
-        e.x -= (dx / d) * 25;
-        e.y -= (dy / d) * 25;
-        this.emit("hurt", { x: p.x, y: p.y });
+        if (
+          e.type !== "boss" ||
+          (!charging && e.windup <= 0 && e.chargeRemaining <= 0)
+        ) {
+          e.x = clamp(e.x + awayX * 25, 25, WORLD.width - 25);
+          e.y = clamp(e.y + awayY * 25, 25, WORLD.height - 25);
+        }
+        this.emit("hurt", { x: p.x, y: p.y, amount: Math.ceil(taken) });
         if (p.hp <= 0) {
           this.status = "lost";
           this.emit("end");
@@ -580,15 +689,26 @@ export class Game {
     }
     if (this.orbitTimer <= 0) this.orbitTimer = 0.55;
     for (const b of this.bullets) {
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      b.life -= dt;
-      for (const e of this.enemies)
-        if (e.hp > 0 && b.life > 0 && distance(b, e) < e.radius + b.radius) {
-          this.damageEnemy(e, b.damage);
-          b.life = 0;
-          break;
+      if (b.life <= 0) continue;
+      const step = Math.min(dt, b.life),
+        end = { x: b.x + b.vx * step, y: b.y + b.vy * step };
+      let target = null,
+        earliest = Infinity;
+      for (const e of this.enemies) {
+        if (e.hp <= 0) continue;
+        const t = sweepCircle(b, end, e, e.radius + b.radius);
+        if (t !== null && t < earliest) {
+          earliest = t;
+          target = e;
         }
+      }
+      b.x += b.vx * step * (target ? earliest : 1);
+      b.y += b.vy * step * (target ? earliest : 1);
+      b.life -= dt;
+      if (target) {
+        this.damageEnemy(target, b.damage);
+        b.life = 0;
+      }
     }
     this.bullets = this.bullets.filter((b) => b.life > 0);
     this.enemies = this.enemies.filter((e) => e.hp > 0);

@@ -119,3 +119,36 @@ test("zero volume does not allocate audio nodes", () => {
   };
   assert.doesNotThrow(() => a.tone(440));
 });
+test("v1.3 history without a keeper or combat metrics migrates to the original keeper", () => {
+  const run = completeRun(blankRecord(), finished(), 0).record.history[0];
+  delete run.keeper;
+  delete run.metrics;
+  const r = stored({ score: 2400, keeper: "constructor", history: [run] });
+  assert.equal(r.keeper, "lantern");
+  assert.equal(r.history[0].keeper, "lantern");
+  assert.equal(r.history[0].metrics, null);
+  assert.equal(r.score, 2400);
+});
+test("keeper and combat metrics survive storage without unsafe IDs or extra fields", () => {
+  const g = new Game({ keeper: "wind", seed: 12 });
+  g.status = "lost";
+  g.metrics.dashes = 3;
+  g.metrics.damageDealt = 25.5;
+  const r = completeRun({ ...blankRecord(), keeper: "leaf" }, g).record;
+  assert.deepEqual(stored(r), r);
+  assert.equal(r.history[0].keeper, "wind");
+  r.history[0].metrics = {
+    dashes: -5,
+    damageTaken: "<script>",
+    damageDealt: Infinity,
+    healed: 12,
+    extra: "<img>",
+  };
+  const clean = stored(r).history[0].metrics;
+  assert.deepEqual(clean, {
+    damageDealt: 0,
+    damageTaken: 0,
+    dashes: 0,
+    healed: 12,
+  });
+});

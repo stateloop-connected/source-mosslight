@@ -69,15 +69,25 @@ try {
     await page.locator("#guide-button").click();
     const guideComplete = (await page.locator("details").count()) === 12;
     await page.getByRole("button", { name: "返回", exact: true }).click();
+    await page.locator("#keeper-button").click();
+    await page.locator('input[value="leaf"]').check();
+    await page.getByRole("button", { name: "完成选择", exact: true }).click();
+    const keeperSelected =
+      (await page.locator("#keeper-name").textContent()) === "护叶";
     await page.locator("#start-button").click();
     const started = await page.locator("#hud").isVisible(),
       touchVisible = !mobile || (await page.locator("#joystick").isVisible());
-    await page.evaluate(async () => {
+    const keeperApplied = await page.evaluate(async () => {
       const { game } = (
         await import(document.querySelector('script[type="module"]').src)
       ).getSession();
       game.motes = [];
       game.addXp(13);
+      return (
+        game.keeper === "leaf" &&
+        game.stats.orbit === 6 &&
+        game.player.hp === 110
+      );
     });
     await page.locator(".upgrade-card").first().waitFor();
     const choices = await page.locator(".upgrade-card").count();
@@ -130,6 +140,9 @@ try {
       return g.seed;
     });
     await page.getByRole("button", { name: "再守一夜", exact: true }).waitFor();
+    await page.getByText("这一夜的战斗明细", { exact: true }).click();
+    const combatDetails =
+      (await page.locator(".combat-stats > div").count()) === 5;
     await page
       .getByRole("button", { name: "查看守夜足迹", exact: true })
       .click();
@@ -142,6 +155,7 @@ try {
       ).getSession();
       return (
         s.game.seed === seed &&
+        s.game.keeper === "leaf" &&
         s.game.elapsed < 3 &&
         s.record.history.length === 1 &&
         s.record.wins === 1
@@ -163,6 +177,9 @@ try {
       buildStats,
       historyRecorded,
       sameSeedRetry,
+      keeperSelected,
+      keeperApplied,
+      combatDetails,
       allModulesVersioned:
         scripts.length >= 7 &&
         scripts.every((s) => s.includes("?v=" + expected)),
@@ -197,6 +214,9 @@ if (
       !r.buildStats ||
       !r.historyRecorded ||
       !r.sameSeedRetry ||
+      !r.keeperSelected ||
+      !r.keeperApplied ||
+      !r.combatDetails ||
       !r.allModulesVersioned ||
       r.errors.length,
   )

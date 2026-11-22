@@ -64,6 +64,10 @@ export class Audio {
       case "hurt":
         this.tone(120, 0.18, 0.045, "triangle");
         break;
+      case "heal":
+        this.tone(660, 0.18, 0.025);
+        this.tone(880, 0.2, 0.02, "sine", 0.08);
+        break;
       case "dash":
         this.tone(330, 0.15, 0.03, "triangle");
         break;

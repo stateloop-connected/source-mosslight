@@ -320,16 +320,29 @@ export class Renderer {
   }
   event(e) {
     if (e.type === "hurt") this.hurtTime = 0.25;
-    if (!["hit", "kill", "collect", "dash", "hurt"].includes(e.type)) return;
+    if (!["hit", "kill", "collect", "dash", "hurt", "heal"].includes(e.type))
+      return;
     if (this.effects.length > 180) this.effects.splice(0, 25);
-    if (e.type === "hit") {
+    if (["hit", "hurt", "heal"].includes(e.type)) {
+      if (this.reduced && e.type === "hit") return;
       this.effects.push({
         type: "number",
         x: e.x,
         y: e.y - 16,
-        text: e.amount,
-        life: 0.6,
-        max: 0.6,
+        text:
+          e.type === "heal"
+            ? `+${e.amount}`
+            : e.type === "hurt"
+              ? `−${e.amount}`
+              : e.amount,
+        color:
+          e.type === "heal"
+            ? "#d1e2a1"
+            : e.type === "hurt"
+              ? "#ec9b96"
+              : "#f1ead0",
+        life: e.type === "hit" ? 0.6 : 0.85,
+        max: e.type === "hit" ? 0.6 : 0.85,
       });
       return;
     }
@@ -433,8 +446,9 @@ export class Renderer {
       c.beginPath();
       c.ellipse(p.x, p.y, 74, 53, 0, 0, TAU);
       c.stroke();
-      for (let i = 0; i < 3; i++) {
-        const a = t * 2.5 + (i / 3) * TAU;
+      const leaves = Math.min(6, 2 + Math.ceil(g.stats.orbit / 10));
+      for (let i = 0; i < leaves; i++) {
+        const a = t * 2.5 + (i / leaves) * TAU;
         leaf(
           c,
           p.x + Math.cos(a) * 74,
@@ -455,8 +469,13 @@ export class Renderer {
         .map((e) => ({ y: e.y, type: "enemy", e })),
       { y: p.y, type: "player" },
     ].sort((a, b) => a.y - b.y);
+    // Telegraph belongs beneath actors and remains visible when the moth's
+    // body is just outside the view. Width includes the player's collision.
+    for (const e of g.enemies)
+      if (e.type === "boss" && e.windup > 0) this.drawCharge(c, e, p.radius);
     for (const item of entities) {
-      if (item.type === "player") this.player(c, p, t, menu);
+      if (item.type === "player")
+        this.player(c, p, t, menu, g.keeper, g.stats.dashCooldown);
       else if (
         Math.abs(item.e.x - (this.camera.x + vw / 2)) < vw / 2 + 70 &&
         Math.abs(item.e.y - (this.camera.y + vh / 2)) < vh / 2 + 70
@@ -506,7 +525,7 @@ export class Renderer {
       c.globalAlpha = clamp(e.life / e.max, 0, 1);
       if (e.type === "number") {
         e.y -= 25 * dt;
-        c.fillStyle = "#f1ead0";
+        c.fillStyle = e.color || "#f1ead0";
         c.font = "600 12px sans-serif";
         c.textAlign = "center";
         c.fillText(e.text, e.x, e.y);
@@ -581,11 +600,45 @@ export class Renderer {
     c.fillText("巨蛾", 0, 32);
     c.restore();
   }
-  player(c, p, t, menu) {
+  drawCharge(c, e, playerRadius) {
+    // Sample the same clamped path, including sliding along a world edge.
+    const path = [[e.x, e.y]];
+    for (let i = 1; i <= 12; i++)
+      path.push([
+        clamp(e.x + (e.chargeX * 198 * i) / 12, 35, WORLD.width - 35),
+        clamp(e.y + (e.chargeY * 198 * i) / 12, 35, WORLD.height - 35),
+      ]);
+    const [endX, endY] = path.at(-1);
+    c.save();
+    c.lineCap = "round";
+    line(c, path, "#c88fa92b", (e.radius + playerRadius) * 2);
+    c.setLineDash([8, 7]);
+    line(c, path, "#f0bdc8", 2);
+    c.setLineDash([]);
+    c.strokeStyle = "#f0bdc8";
+    c.lineWidth = 1.5;
+    const radius = e.radius + playerRadius;
+    for (const sign of [-1, 1]) {
+      const edge = path.map(([x, y], i) => {
+        const before = path[Math.max(0, i - 1)],
+          after = path[Math.min(path.length - 1, i + 1)],
+          dx = after[0] - before[0],
+          dy = after[1] - before[1],
+          d = Math.hypot(dx, dy) || 1;
+        return [x - (dy / d) * radius * sign, y + (dx / d) * radius * sign];
+      });
+      line(c, edge, "#f0bdc880", 1);
+    }
+    c.beginPath();
+    c.arc(endX, endY, radius, 0, TAU);
+    c.stroke();
+    c.restore();
+  }
+  player(c, p, t, menu, keeper = "lantern", dashCooldown = 3.8) {
     c.save();
     c.translate(p.x, p.y);
     if (p.invincible > 0 && !this.reduced)
-      c.globalAlpha = 0.55 + Math.cos(t * 22) * 0.22;
+      c.globalAlpha = 0.85 + Math.cos(t * 22) * 0.1;
     const bob = Math.sin(t * 3) * 1.4;
     glow(c, 0, -4, 75, "#d1dd8e16");
     ellipse(c, 0, 10, 17, 7, "#102f2ba0");
@@ -594,6 +647,19 @@ export class Renderer {
     c.beginPath();
     c.ellipse(0, 10, 21, 9, 0, 0, TAU);
     c.stroke();
+    if (p.dashRemaining > 0 && !menu) {
+      c.strokeStyle = "#f0cc88";
+      c.lineWidth = 2;
+      c.beginPath();
+      c.arc(
+        0,
+        5,
+        25,
+        -Math.PI / 2,
+        -Math.PI / 2 + TAU * clamp(1 - p.dashRemaining / dashCooldown, 0, 1),
+      );
+      c.stroke();
+    }
     if (p.dashTime > 0)
       for (let i = 1; i < 5; i++)
         ellipse(
@@ -607,7 +673,8 @@ export class Renderer {
     c.translate(0, bob);
     ellipse(c, -5, 9, 4, 5, "#c6be91");
     ellipse(c, 5, 9, 4, 5, "#c6be91");
-    c.fillStyle = "#b9cc8d";
+    c.fillStyle =
+      keeper === "wind" ? "#b7d0bb" : keeper === "leaf" ? "#a7c889" : "#b9cc8d";
     c.beginPath();
     c.moveTo(0, -20);
     c.bezierCurveTo(-19, -8, -16, 1, -20, 8);
@@ -624,7 +691,8 @@ export class Renderer {
     ellipse(c, 1, -7, 10, 10, "#e0d8b2");
     ellipse(c, -1, -7, 1.4, 2, "#294237");
     ellipse(c, 6, -7, 1.4, 2, "#294237");
-    c.fillStyle = "#8caf73";
+    c.fillStyle =
+      keeper === "wind" ? "#86afa2" : keeper === "leaf" ? "#739d69" : "#8caf73";
     c.beginPath();
     c.moveTo(-13, -10);
     c.bezierCurveTo(-15, -25, 0, -32, 12, -24);
@@ -671,12 +739,6 @@ export class Renderer {
     if (e.type === "boss" && e.windup > 0) {
       c.strokeStyle = "#f0bdc8";
       c.lineWidth = 2;
-      c.setLineDash([7, 7]);
-      c.beginPath();
-      c.moveTo(0, 0);
-      c.lineTo(e.chargeX * 220, e.chargeY * 220);
-      c.stroke();
-      c.setLineDash([]);
       c.beginPath();
       c.ellipse(0, 0, 50, 43, 0, 0, TAU);
       c.stroke();
@@ -796,7 +858,7 @@ export class Renderer {
       ellipse(c, -4, -6, 2, 2, "#edb1a6");
       ellipse(c, 4, -6, 2, 2, "#edb1a6");
     }
-    if (e.hit > 0 && e.type !== "boss") {
+    if ((e.hit > 0 || e.hp < e.maxHp) && e.type !== "boss") {
       c.fillStyle = "#142d2b";
       c.fillRect(-e.radius, -e.radius - 10, e.radius * 2, 3);
       c.fillStyle = "#e7c99f";

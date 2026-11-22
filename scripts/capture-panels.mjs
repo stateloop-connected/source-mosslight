@@ -1,6 +1,7 @@
 import { chromium } from "@playwright/test";
 import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+const version = JSON.parse(await readFile("package.json", "utf8")).version;
 const edge = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const browser = await chromium.launch(
   existsSync(edge) ? { executablePath: edge } : {},
@@ -52,9 +53,9 @@ try {
       );
       const durable =
         ["desktop", "mobile"].includes(v.name) &&
-        ["pause", "settings", "journal"].includes(name);
+        ["keeper", "pause", "journal", "result"].includes(name);
       await page.screenshot({
-        path: `${durable ? "docs/screenshots" : ".impeccable/review"}/${v.name}-${name}-v1.3.png`,
+        path: `${durable ? "docs/screenshots" : ".impeccable/review"}/${v.name}-${name}-v${version}.png`,
         scale: "css",
       });
     };
@@ -65,6 +66,10 @@ try {
     await page.locator("summary").first().click();
     await capture("guide");
     await page.keyboard.press("Escape");
+    await page.locator("#keeper-button").click();
+    await page.locator('input[value="leaf"]').check();
+    await capture("keeper");
+    await page.getByRole("button", { name: "完成选择", exact: true }).click();
     await page.locator("#start-button").click();
     await page.evaluate(async () => {
       const g = (
@@ -96,6 +101,8 @@ try {
     });
     await page.getByRole("button", { name: "再守一夜", exact: true }).waitFor();
     await capture("result");
+    await page.getByText("这一夜的战斗明细", { exact: true }).click();
+    await capture("result-details");
     await page
       .getByRole("button", { name: "查看守夜足迹", exact: true })
       .click();
@@ -107,7 +114,7 @@ try {
   await browser.close();
 }
 await writeFile(
-  ".impeccable/review/panels-v1.3.json",
+  `.impeccable/review/panels-v${version}.json`,
   JSON.stringify(results, null, 2),
 );
 console.log(JSON.stringify(results, null, 2));

@@ -1,0 +1,374 @@
+{
+  "checkedAt": "2026-11-22T04:57:01.081258+00:00",
+  "source": "scripts/capture-panels.mjs; controlled QA states",
+  "results": [
+    {
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "states": [
+        {
+          "name": "settings",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 746,
+          "viewportHeight": 1000,
+          "dialogScroll": true
+        },
+        {
+          "name": "guide",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 746,
+          "viewportHeight": 1000,
+          "dialogScroll": true
+        },
+        {
+          "name": "keeper",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 746,
+          "viewportHeight": 1000,
+          "dialogScroll": true
+        },
+        {
+          "name": "pause",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 166,
+          "dialogBottom": 714,
+          "viewportHeight": 1000,
+          "dialogScroll": false
+        },
+        {
+          "name": "result",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 746,
+          "viewportHeight": 1000,
+          "dialogScroll": true
+        },
+        {
+          "name": "result-details",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 746,
+          "viewportHeight": 1000,
+          "dialogScroll": true
+        },
+        {
+          "name": "journal",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 217,
+          "dialogBottom": 664,
+          "viewportHeight": 1000,
+          "dialogScroll": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": {
+        "name": "compact",
+        "width": 1280,
+        "height": 800
+      },
+      "states": [
+        {
+          "name": "settings",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "guide",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "keeper",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "pause",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "result",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "result-details",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 134,
+          "dialogBottom": 656,
+          "viewportHeight": 800,
+          "dialogScroll": true
+        },
+        {
+          "name": "journal",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 172,
+          "dialogBottom": 619,
+          "viewportHeight": 800,
+          "dialogScroll": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "states": [
+        {
+          "name": "settings",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 93,
+          "dialogBottom": 713,
+          "viewportHeight": 844,
+          "dialogScroll": true
+        },
+        {
+          "name": "guide",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 93,
+          "dialogBottom": 713,
+          "viewportHeight": 844,
+          "dialogScroll": true
+        },
+        {
+          "name": "keeper",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 96,
+          "dialogBottom": 710,
+          "viewportHeight": 844,
+          "dialogScroll": false
+        },
+        {
+          "name": "pause",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 138,
+          "dialogBottom": 758,
+          "viewportHeight": 844,
+          "dialogScroll": false
+        },
+        {
+          "name": "result",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 96,
+          "dialogBottom": 800,
+          "viewportHeight": 844,
+          "dialogScroll": false
+        },
+        {
+          "name": "result-details",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 75,
+          "dialogBottom": 821,
+          "viewportHeight": 844,
+          "dialogScroll": true
+        },
+        {
+          "name": "journal",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 231,
+          "dialogBottom": 665,
+          "viewportHeight": 844,
+          "dialogScroll": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": {
+        "name": "small",
+        "width": 320,
+        "height": 568,
+        "touch": true
+      },
+      "states": [
+        {
+          "name": "settings",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 93,
+          "dialogBottom": 537,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "guide",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 93,
+          "dialogBottom": 537,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "keeper",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 93,
+          "dialogBottom": 537,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "pause",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 75,
+          "dialogBottom": 545,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "result",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 75,
+          "dialogBottom": 545,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "result-details",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 75,
+          "dialogBottom": 545,
+          "viewportHeight": 568,
+          "dialogScroll": true
+        },
+        {
+          "name": "journal",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 84,
+          "dialogBottom": 536,
+          "viewportHeight": 568,
+          "dialogScroll": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": {
+        "name": "landscape",
+        "width": 844,
+        "height": 390,
+        "touch": true
+      },
+      "states": [
+        {
+          "name": "settings",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 82,
+          "dialogBottom": 330,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "guide",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 82,
+          "dialogBottom": 330,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "keeper",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 82,
+          "dialogBottom": 330,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "pause",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 84,
+          "dialogBottom": 358,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "result",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 84,
+          "dialogBottom": 358,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "result-details",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 84,
+          "dialogBottom": 358,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        },
+        {
+          "name": "journal",
+          "horizontalOverflow": false,
+          "clipped": false,
+          "dialogTop": 84,
+          "dialogBottom": 358,
+          "viewportHeight": 390,
+          "dialogScroll": true
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
