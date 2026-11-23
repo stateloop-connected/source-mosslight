@@ -20,6 +20,19 @@ v1.4 发布维护日期：2026-11-23（Asia/Shanghai）。
 | v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）          |
 | v1.1.0                        | 已部署并完成桌面 / 手机公网验证；25 项逻辑/构建测试、23 项浏览器流程通过 |
 
+## v1.5.0 发布验证
+
+发布日期：2026-11-24（Asia/Shanghai）。
+
+- 游戏改进提交：`c3995cc71f3f3b75113b771443015ccf9c07ec4a`，GitHub 与 Gitee main 已同步。
+- Linux / Chromium Checks：https://github.com/yunhanhai/mosslight/actions/runs/45215344592 — success。
+- Pages 部署：https://github.com/yunhanhai/mosslight/actions/runs/45215344606 — success。
+- 本地 74 项规则 / 存储 / 几何 / 构建测试通过；场景 31、原面板 26、暂存 19，合计 76 项浏览器流程通过，4 项手机专用在桌面跳过。
+- 公网桌面 / 手机均实际加载 1.5.0；刷新正在升级的页面后，时间、角色、三选一与已用换选保留，恢复后继续升级、暂停、边缘取景、巨蛾画外指示、结算、足迹与同种子重试通过；8 个模块版本参数一致，无检测到的页面 / 资源错误。
+- 构建验证 `build-verification-v1.5.json`、公网验证 `online-verification-v1.5.json`，五种尺寸 50 个状态见 `layout-verification-v1.5.json`；续玩入口 / 恢复 / 成长提示的新截图独立保存。
+- 版本页：https://github.com/yunhanhai/mosslight/releases/tag/v1.5.0。
+- 暂存仅位于当前标签页 sessionStorage，关闭后不保证保留，异常中止可能退回最近一次暂存；不影响已有正式成绩。真人 / 真实 iOS / 低端设备与平衡验证仍待完成。
+
 ## v1.4.0 发布验证
 
 发布日期：2026-11-23（Asia/Shanghai）；主要实现与本地检查于 11 月 22 日完成。
