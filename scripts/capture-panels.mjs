@@ -53,7 +53,7 @@ try {
       );
       const durable =
         ["desktop", "mobile"].includes(v.name) &&
-        ["keeper", "pause", "journal", "result"].includes(name);
+        ["pause", "continued", "upgrade", "journal"].includes(name);
       await page.screenshot({
         path: `${durable ? "docs/screenshots" : ".impeccable/review"}/${v.name}-${name}-v${version}.png`,
         scale: "css",
@@ -92,7 +92,43 @@ try {
     await page.waitForTimeout(300);
     await page.keyboard.press("p");
     await capture("pause");
+    await page
+      .getByRole("button", { name: "暂存并回到花园", exact: true })
+      .click();
+    const continueGeometry = await page
+      .locator("#continue-button")
+      .evaluate((node) => {
+        const r = node.getBoundingClientRect();
+        return {
+          right: r.right,
+          bottom: r.bottom,
+          visible: r.top >= 0 && r.bottom <= innerHeight,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+    states.push({
+      name: "continue-menu",
+      horizontalOverflow: continueGeometry.overflow,
+      clipped: !continueGeometry.visible,
+      bottom: continueGeometry.bottom,
+    });
+    await page.screenshot({
+      path: `${["desktop", "mobile"].includes(v.name) ? "docs/screenshots" : ".impeccable/review"}/${v.name}-continue-menu-v${version}.png`,
+      scale: "css",
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("#continue-button").click();
+    await capture("continued");
     await page.getByRole("button", { name: "继续守夜", exact: true }).click();
+    await page.evaluate(async () => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      g.addXp(8 + g.level * 5 - g.xp);
+    });
+    await page.locator(".upgrade-card").first().waitFor();
+    await capture("upgrade");
+    await page.locator(".upgrade-card").first().click();
     await page.evaluate(async () => {
       const g = (
         await import(document.querySelector('script[type="module"]').src)

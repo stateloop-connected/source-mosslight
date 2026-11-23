@@ -7,6 +7,7 @@ import {
   scoreFor,
   xpFor,
   upgradePreview,
+  upgradeHint,
 } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { loadRecord, saveRecord, blankRecord, completeRun } from "./storage.js";
@@ -20,7 +21,13 @@ import {
   runDetails,
 } from "./panels.js";
 import { Audio } from "./audio.js";
-import { edgeIndicator } from "./view.js";
+import { edgeIndicator, cameraTarget } from "./view.js";
+import {
+  loadCheckpoint,
+  saveCheckpoint,
+  restoreCheckpoint,
+  clearCheckpoint,
+} from "./checkpoint.js";
 
 // Keep touch controls stable on hybrid devices, including after a mouse click.
 document.documentElement.classList.toggle(
@@ -60,6 +67,10 @@ try {
   };
 }
 const record = loaded.record;
+const recovered = loadCheckpoint();
+let checkpoint = recovered.snapshot,
+  checkpointAvailable = recovered.available,
+  lastCheckpoint = performance.now();
 audio.enabled = record.sound;
 audio.volume = record.volume;
 let storageAvailable = loaded.available,
@@ -69,6 +80,7 @@ let storageAvailable = loaded.available,
   previousFocus = null,
   previousScroll = 0,
   panelStack = [],
+  replacement = null,
   resultBest = { score: false, time: false },
   toastUntil = 0,
   lastSaved = null,
@@ -159,6 +171,40 @@ function keeperUI() {
   preview.stats.orbit = k.stats.orbit || 0;
   renderDirty = true;
 }
+function checkpointUI() {
+  $("continue-wrap").hidden = !checkpoint;
+  document.body.classList.toggle("has-checkpoint", !!checkpoint);
+  if (!checkpoint) return;
+  const s = checkpoint.state;
+  text(
+    "continue-description",
+    `${KEEPERS[s.keeper].name} · ${s.mode === "practice" ? "练习" : "守夜"} ${timeText(s.elapsed)} · Lv. ${s.level}${s.status === "choosing" ? " · 等待选择能力" : ""}`,
+  );
+}
+function checkpointNote() {
+  const node = $("dialog").querySelector("[data-checkpoint-note]");
+  if (!node) return;
+  node.textContent = checkpointAvailable
+    ? "进度已在此标签页暂存；刷新可继续，关闭后不保证保留。"
+    : "浏览器未允许暂存本局；请保持此页面打开，刷新会丢失进度。";
+}
+function persistCheckpoint() {
+  if (!game || !["playing", "paused", "choosing"].includes(game.status))
+    return false;
+  const result = saveCheckpoint(game);
+  checkpointAvailable = result.available;
+  if (result.snapshot) {
+    checkpoint = result.snapshot;
+  }
+  lastCheckpoint = performance.now();
+  checkpointNote();
+  return result.available;
+}
+function removeCheckpoint() {
+  checkpoint = null;
+  checkpointAvailable = clearCheckpoint();
+  checkpointUI();
+}
 function save() {
   storageAvailable = saveRecord(record);
   records();
@@ -218,6 +264,8 @@ function hideDialog() {
   if (restore?.isConnected) restore.focus({ preventScroll: true });
 }
 function dialog(html) {
+  $("toast").classList.remove("visible");
+  toastUntil = 0;
   if ($("overlay").hidden) {
     previousFocus = document.activeElement;
     previousScroll = window.scrollY;
@@ -241,6 +289,23 @@ function showGameUI(visible) {
   if (!visible) $("boss-hud").hidden = true;
 }
 function start(options = {}) {
+  if (checkpoint && !game && !options.replace) {
+    replacement = {
+      options: {
+        mode: options.mode,
+        keeper: options.keeper,
+        seed: options.seed,
+      },
+      from: screen,
+    };
+    screen = "replace";
+    dialog(
+      `<h2 id="dialog-title">开始新的守望？</h2><p class="intro">上一局的进度还在。开始新局会替换暂存，已完成的成绩保留。</p><div class="dialog-actions"><button class="start-button" data-action="cancel-new">保留上一局</button><button class="secondary-button" data-action="new-run">替换并开始</button></div>`,
+    );
+    return;
+  }
+  removeCheckpoint();
+  replacement = null;
   audio.unlock();
   soundUI();
   game = new Game({
@@ -268,14 +333,65 @@ function start(options = {}) {
   canvas.focus({ preventScroll: true });
   toast("拾起身边的金色露光，选择第一份能力");
   updateHUD(true);
+  persistCheckpoint();
+}
+function cancelReplacement() {
+  screen = replacement?.from || "menu";
+  replacement = null;
+  if (panels.has(screen)) renderPanel(screen);
+  else hideDialog();
+}
+function continueRun() {
+  if (!checkpoint) return;
+  const restored = restoreCheckpoint(checkpoint);
+  if (!restored) {
+    removeCheckpoint();
+    toast("上一局的进度无法读取，可以重新出发。");
+    return;
+  }
+  audio.unlock();
+  soundUI();
+  game = restored;
+  document.querySelector(`input[name="mode"][value="${game.mode}"]`).checked =
+    true;
+  panelStack = [];
+  lastSaved = null;
+  renderer.effects = [];
+  renderer.hurtTime = 0;
+  showGameUI(true);
+  syncViewport();
+  const view = renderer.getView();
+  const target = cameraTarget(game.player, view.width, view.height, view.scale);
+  renderer.camera = { x: target.x, y: target.y };
+  resetInput();
+  lastFrame = performance.now();
+  lastHUD = 0;
+  renderDirty = true;
+  updateBuild();
+  updateHUD(true);
+  if (game.status === "choosing") showUpgrade();
+  else {
+    screen = "paused";
+    showPause();
+  }
+}
+function saveAndMenu() {
+  if (!persistCheckpoint()) {
+    toast("本局暂存失败，请保持页面打开，或结束并结算。");
+    return;
+  }
+  menu();
 }
 function menu() {
   panelStack = [];
   game = null;
   screen = "menu";
+  $("toast").classList.remove("visible");
+  toastUntil = 0;
   resetInput();
   hideDialog();
   showGameUI(false);
+  checkpointUI();
   $("start-button").focus({ preventScroll: true });
 }
 function pause() {
@@ -283,6 +399,7 @@ function pause() {
   game.pause();
   screen = "paused";
   resetInput();
+  persistCheckpoint();
   showPause();
 }
 function resume() {
@@ -296,8 +413,9 @@ function resume() {
 }
 function showPause() {
   dialog(
-    `<h2 id="dialog-title">在苔叶间歇一会儿</h2><p class="intro">花园已经暂停，微光会等你回来。</p><button class="start-button" data-action="resume">继续守夜</button>${buildOverview(game)}<div class="panel-links"><button data-action="guide">花园图鉴</button><button data-action="settings">游戏设置</button><button data-action="journal">守夜足迹</button><button data-action="abandon">结束本局</button></div><p class="result-build">P 或 Esc 继续 · 当前 ${timeText(game.elapsed)}</p>`,
+    `<h2 id="dialog-title">在苔叶间歇一会儿</h2><p class="intro">花园已经暂停，微光会等你回来。</p><button class="start-button" data-action="resume">继续守夜</button>${buildOverview(game)}<div class="panel-links"><button data-action="guide">花园图鉴</button><button data-action="settings">游戏设置</button><button data-action="journal">守夜足迹</button><button data-action="save-menu">暂存并回到花园</button><button data-action="abandon">结束本局</button></div><p class="result-build">P 或 Esc 继续 · 当前 ${timeText(game.elapsed)}</p><p class="panel-note" data-checkpoint-note></p>`,
   );
+  checkpointNote();
 }
 function showAbandon() {
   dialog(
@@ -306,12 +424,13 @@ function showAbandon() {
 }
 function showUpgrade() {
   screen = "choosing";
+  persistCheckpoint();
   dialog(
     `<h2 id="dialog-title">微光，又长大了一点</h2><p class="intro">升至 Lv. ${game.level} · 选择一份花园的馈赠</p><div class="upgrade-grid">${game.choices
       .map((id, i) => {
         const u = UPGRADES.find((u) => u.id === id),
           level = (game.build[id] || 0) + 1;
-        return `<button class="upgrade-card" data-upgrade="${id}">${icon(u.icon)}<strong>${u.name}</strong><small>Lv. ${level} / ${u.max}</small><p>${u.desc}</p><span class="upgrade-effect">${upgradePreview(id, game)}</span><span class="card-shortcut">按 ${i + 1} 选择</span></button>`;
+        return `<button class="upgrade-card" data-upgrade="${id}">${icon(u.icon)}<strong>${u.name}</strong><small>Lv. ${level} / ${u.max}</small><p>${u.desc}</p><span class="upgrade-effect">${upgradePreview(id, game)}</span><span class="upgrade-hint">${upgradeHint(id, game)}</span><span class="card-shortcut">按 ${i + 1} 选择</span></button>`;
       })
       .join(
         "",
@@ -320,6 +439,7 @@ function showUpgrade() {
 }
 function choose(id) {
   if (!game?.choose(id)) return;
+  persistCheckpoint();
   updateBuild();
   if (game.status === "choosing") showUpgrade();
   else {
@@ -346,6 +466,7 @@ function showResult() {
   resetInput();
   if (lastSaved !== game) {
     lastSaved = game;
+    removeCheckpoint();
     const completed = completeRun(record, game);
     Object.assign(record, completed.record);
     resultBest = completed.best;
@@ -388,6 +509,7 @@ function renderPanel(kind) {
 function openPanel(kind) {
   if (screen === kind) return;
   if (screen === "playing") game.pause();
+  persistCheckpoint();
   const prior = panelStack.indexOf(kind);
   if (prior >= 0) panelStack = panelStack.slice(0, prior);
   else panelStack.push(screen);
@@ -470,6 +592,7 @@ function updateHUD(force = false, now = performance.now()) {
 }
 
 $("start-button").addEventListener("click", start);
+$("continue-button").addEventListener("click", continueRun);
 $("keeper-button").addEventListener("click", () => openPanel("keeper"));
 $("help-button").addEventListener("click", help);
 $("guide-button").addEventListener("click", () => openPanel("guide"));
@@ -512,6 +635,9 @@ $("dialog").addEventListener("click", (e) => {
   }
   const action = e.target.closest("[data-action]")?.dataset.action;
   const actions = {
+    "save-menu": saveAndMenu,
+    "new-run": () => start({ ...replacement?.options, replace: true }),
+    "cancel-new": cancelReplacement,
     reroll: () => {
       if (game?.reroll()) showUpgrade();
     },
@@ -599,6 +725,7 @@ document.addEventListener("keydown", (e) => {
   if (key === "escape" || key === "p") {
     if (screen === "playing") pause();
     else if (screen === "paused") resume();
+    else if (screen === "replace") cancelReplacement();
     else if (panels.has(screen)) closePanel();
     return;
   }
@@ -620,7 +747,17 @@ window.addEventListener("blur", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && screen === "playing") pause();
+  if (document.hidden) persistCheckpoint();
   accumulator = 0;
+  lastFrame = performance.now();
+  renderDirty = true;
+});
+window.addEventListener("pagehide", () => {
+  if (screen === "playing") pause();
+  else persistCheckpoint();
+});
+window.addEventListener("pageshow", () => {
+  resetInput();
   lastFrame = performance.now();
   renderDirty = true;
 });
@@ -709,7 +846,11 @@ for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
     }
   });
 function syncViewport() {
+  const oldWidth = renderer.width,
+    oldHeight = renderer.height;
   renderer.resize();
+  if (renderer.width !== oldWidth || renderer.height !== oldHeight)
+    resetInput();
   if (game)
     game.setViewport(
       renderer.width / renderer.scale,
@@ -724,8 +865,11 @@ matchMedia("(prefers-reduced-motion: reduce)").addEventListener(
 );
 applyPreferences();
 keeperUI();
+checkpointUI();
 records();
 soundUI();
+if (recovered.invalid)
+  toast("上一局的暂存无法读取，已清理；已完成的成绩保留。");
 function frame(now) {
   const dt = Math.min((now - lastFrame) / 1000, 0.1);
   lastFrame = now;
@@ -746,6 +890,8 @@ function frame(now) {
       }
       if (game.status === "choosing") showUpgrade();
       else if (["won", "lost"].includes(game.status)) showResult();
+      if (screen === "playing" && now - lastCheckpoint >= 4000)
+        persistCheckpoint();
     }
     for (const e of game.events.splice(0)) {
       renderer.event(e);

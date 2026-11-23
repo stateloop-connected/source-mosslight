@@ -95,6 +95,32 @@ try {
     const rerollUsed = await page
       .locator('[data-action="reroll"]')
       .isDisabled();
+    const upgradeHints = (await page.locator(".upgrade-hint").count()) === 3;
+    const beforeRecovery = await page.evaluate(async () => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      return {
+        elapsed: g.elapsed,
+        choices: [...g.choices],
+        rerolls: g.rerolls,
+      };
+    });
+    await page.reload();
+    await page.locator("#continue-button").click();
+    await page.locator(".upgrade-card").first().waitFor();
+    const checkpointRecovered = await page.evaluate(async (before) => {
+      const g = (
+        await import(document.querySelector('script[type="module"]').src)
+      ).getSession().game;
+      return (
+        g.status === "choosing" &&
+        g.elapsed === before.elapsed &&
+        g.rerolls === before.rerolls &&
+        JSON.stringify(g.choices) === JSON.stringify(before.choices) &&
+        g.keeper === "leaf"
+      );
+    }, beforeRecovery);
     await page.locator(".upgrade-card").first().click();
     await page.locator("#pause-button").click();
     const paused = await page
@@ -180,8 +206,10 @@ try {
       keeperSelected,
       keeperApplied,
       combatDetails,
+      upgradeHints,
+      checkpointRecovered,
       allModulesVersioned:
-        scripts.length >= 7 &&
+        scripts.length >= 8 &&
         scripts.every((s) => s.includes("?v=" + expected)),
       errors,
     });
@@ -217,6 +245,8 @@ if (
       !r.keeperSelected ||
       !r.keeperApplied ||
       !r.combatDetails ||
+      !r.upgradeHints ||
+      !r.checkpointRecovered ||
       !r.allModulesVersioned ||
       r.errors.length,
   )

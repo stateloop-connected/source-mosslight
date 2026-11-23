@@ -134,13 +134,15 @@ export const UPGRADES = [
 ];
 export function rng(seed = Date.now()) {
   let n = seed >>> 0;
-  return () => {
-    n += 0x6d2b79f5;
+  const random = () => {
+    n = (n + 0x6d2b79f5) >>> 0;
     let t = n;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  random.getState = () => n;
+  return random;
 }
 export const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -190,6 +192,33 @@ export function upgradePreview(id, game) {
       dash: `冷却 ${number(s.dashCooldown)} → ${number(s.dashCooldown * 0.8)} 秒`,
     }[id] || ""
   );
+}
+export function upgradeHint(id, game) {
+  const s = game.stats,
+    p = game.player;
+  const healed = (amount, max = s.maxHp) =>
+    Math.max(0, Math.min(amount, max - p.hp));
+  const hints = {
+    power:
+      s.bolts > 1
+        ? `让每次的 ${s.bolts} 枚萤火都更有力`
+        : "让单枚萤火更容易驱散虫影",
+    haste:
+      s.bolts > 1 ? "与多发萤火配合，覆盖更多虫影" : "缩短两次发射之间的空隙",
+    multi: "虫影较多时可同时照亮多个目标",
+    speed: "更快绕开虫群，也更容易追上微光",
+    magnet: "扩大拾取范围，减少贴近虫群取光",
+    vitality: `此刻可恢复 ${Math.round(healed(40, s.maxHp + 20))} 生命`,
+    orbit:
+      s.orbit > 0
+        ? "加强已有叶环，每 0.55 秒触发"
+        : "建立近身叶环，每 0.55 秒触发",
+    dash:
+      healed(15) > 0
+        ? `此刻可恢复 ${Math.round(healed(15))} 生命`
+        : "更频繁冲刺，保持脱身余地",
+  };
+  return hints[id] || "";
 }
 
 export class Game {
@@ -733,7 +762,7 @@ export class Game {
     }
     this.motes = this.motes.filter((m) => m.life > 0);
     // Deterministic coalescing keeps long sessions bounded without losing XP.
-    if (this.motes.length > 240) {
+    while (this.motes.length > 240) {
       const a = this.motes.shift(),
         b = this.motes[0];
       b.value += a.value;
