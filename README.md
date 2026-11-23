@@ -67,6 +67,7 @@ npm ci                 # 仅开发、浏览器测试需要
 npm test               # 无头游戏逻辑测试
 npm run test:browser   # 桌面与手机浏览器流程
 npm run build          # 输出可静态部署的 dist/
+node scripts/simulate-runs.mjs  # 可复现的正常生命值诊断模拟，非真人难度测评
 npm run preview        # 预览构建结果
 ```
 

@@ -4,6 +4,8 @@
 
 v1.3 发布维护日期：2026-11-22（Asia/Shanghai）。
 
+v1.4 发布维护日期：2026-11-23（Asia/Shanghai）。
+
 ## 状态
 
 | 项目                          | 状态                                                                     |
@@ -17,6 +19,20 @@ v1.3 发布维护日期：2026-11-22（Asia/Shanghai）。
 | GitHub CI                     | Linux / Chromium 的 Checks 成功                                          |
 | v1.0 独立复核                 | 两项修复均为 Resolved，复核结论 ship（见 REVIEW.md 的范围限制）          |
 | v1.1.0                        | 已部署并完成桌面 / 手机公网验证；25 项逻辑/构建测试、23 项浏览器流程通过 |
+
+## v1.4.0 发布验证
+
+发布日期：2026-11-23（Asia/Shanghai）；主要实现与本地检查于 11 月 22 日完成。
+
+- 游戏改进提交：`e4341c37619d849bd1b0c89ed39c481bea082dc1`，GitHub 与 Gitee main 已同步。
+- Linux / Chromium Checks：https://github.com/yunhanhai/mosslight/actions/runs/45207021552 — success。
+- Pages 部署：https://github.com/yunhanhai/mosslight/actions/runs/45207021442 — success。
+- 本地 62 项规则 / 存储 / 几何 / 构建测试、57 项桌面 / 手机浏览器流程通过；3 项手机专用用例在桌面跳过。
+- 公网桌面 / 手机均实际加载 1.4.0，角色选择与真实初始属性、图鉴、设置保存、升级 / 换选、暂停属性、角落 / 画外巨蛾提示、结算战斗明细、足迹与保留角色的同种子重试通过；7 个模块版本参数一致，无检测到的页面或资源错误。
+- 构建验证 `build-verification-v1.4.json`、公网验证 `online-verification-v1.4.json`、五种尺寸 35 个面板状态 `layout-verification-v1.4.json` 及独立的角色 / 战斗 / 结果截图已保存。
+- 补充正常生命值的 60 局诊断模拟：5 个种子 × 3 位守夜人 × 2 种模式 × 2 类视野，全部走到黎明。脚本使用精确模型位置决定移动与升级，无修改生命 / 伤害 / 敌人；结果仅属于该自动策略，不代表真人胜率或平衡定论。详见 `simulation-v1.4.json` 和 `scripts/simulate-runs.mjs`。
+- 版本页：https://github.com/yunhanhai/mosslight/releases/tag/v1.4.0。
+- 真实 iOS / 低端设备、玩家对角色差异与难度的评价仍待完成；本轮不根据诊断机器人胜率直接调整平衡。
 
 ## v1.3.0 发布验证
 

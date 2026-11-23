@@ -1,0 +1,1742 @@
+{
+  "version": "1.4.0",
+  "checkedAt": "2026-11-23T15:38:40.365Z",
+  "method": "Five fixed seeds × three keepers × two modes × two viewports, normal HP and unchanged combat values; 60Hz, bot decisions at 10Hz. Diagnostic policy only; no human win-rate claim.",
+  "summary": [
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 16.8,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 16.2,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 16.2,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 9,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 7.6,
+      "bossesDefeated": 2
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 8.6,
+      "bossesDefeated": 4
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 17,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 16.8,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 180,
+      "meanLevel": 17,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 8.8,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 9,
+      "bossesDefeated": 5
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "completed": 5,
+      "runs": 5,
+      "meanTime": 90,
+      "meanLevel": 8.4,
+      "bossesDefeated": 4
+    }
+  ],
+  "results": [
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 16,
+      "score": 9535,
+      "kills": 330,
+      "bossDefeated": true,
+      "peakEnemies": 30,
+      "build": {
+        "magnet": 1,
+        "orbit": 3,
+        "multi": 3,
+        "power": 5,
+        "haste": 3
+      },
+      "metrics": {
+        "damageDealt": 12759.630398518679,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10057,
+      "kills": 346,
+      "bossDefeated": true,
+      "peakEnemies": 26,
+      "build": {
+        "orbit": 2,
+        "magnet": 3,
+        "multi": 3,
+        "haste": 4,
+        "power": 4
+      },
+      "metrics": {
+        "damageDealt": 12732.349722222385,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10102,
+      "kills": 356,
+      "bossDefeated": true,
+      "peakEnemies": 26,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "haste": 5,
+        "speed": 2,
+        "magnet": 1
+      },
+      "metrics": {
+        "damageDealt": 13386.498917037212,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 9899,
+      "kills": 352,
+      "bossDefeated": true,
+      "peakEnemies": 31,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "haste": 3,
+        "speed": 2,
+        "magnet": 1,
+        "orbit": 2
+      },
+      "metrics": {
+        "damageDealt": 13298.070020000156,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10007,
+      "kills": 341,
+      "bossDefeated": true,
+      "peakEnemies": 24,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "magnet": 3,
+        "speed": 1,
+        "haste": 3,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 12774.568425926085,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 16,
+      "score": 9691,
+      "kills": 343,
+      "bossDefeated": true,
+      "peakEnemies": 27,
+      "build": {
+        "magnet": 1,
+        "haste": 5,
+        "multi": 2,
+        "power": 5,
+        "speed": 1,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 13528.040219629765,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 65,
+      "level": 14,
+      "score": 8542,
+      "kills": 326,
+      "bossDefeated": true,
+      "peakEnemies": 63,
+      "build": {
+        "orbit": 2,
+        "magnet": 1,
+        "haste": 2,
+        "power": 3,
+        "multi": 3,
+        "dash": 1,
+        "vitality": 1
+      },
+      "metrics": {
+        "damageDealt": 12215.53544444454,
+        "damageTaken": 100,
+        "dashes": 16,
+        "healed": 55
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 17,
+      "score": 9714,
+      "kills": 337,
+      "bossDefeated": true,
+      "peakEnemies": 26,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "power": 4,
+        "orbit": 4,
+        "speed": 1,
+        "haste": 3
+      },
+      "metrics": {
+        "damageDealt": 12645.553455555715,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 18,
+      "score": 10289,
+      "kills": 352,
+      "bossDefeated": true,
+      "peakEnemies": 37,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "haste": 4,
+        "magnet": 3,
+        "orbit": 1,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 13420.063888889019,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 16,
+      "score": 9566,
+      "kills": 338,
+      "bossDefeated": true,
+      "peakEnemies": 24,
+      "build": {
+        "multi": 3,
+        "haste": 3,
+        "magnet": 1,
+        "power": 5,
+        "orbit": 3
+      },
+      "metrics": {
+        "damageDealt": 12787.547407407514,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10031,
+      "kills": 343,
+      "bossDefeated": true,
+      "peakEnemies": 28,
+      "build": {
+        "magnet": 3,
+        "multi": 3,
+        "power": 5,
+        "haste": 4,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 13098.222038518627,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 13,
+      "score": 7888,
+      "kills": 319,
+      "bossDefeated": true,
+      "peakEnemies": 57,
+      "build": {
+        "orbit": 4,
+        "power": 3,
+        "multi": 3,
+        "magnet": 1,
+        "haste": 1
+      },
+      "metrics": {
+        "damageDealt": 11222.314611111124,
+        "damageTaken": 0,
+        "dashes": 24,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 9815,
+      "kills": 335,
+      "bossDefeated": true,
+      "peakEnemies": 28,
+      "build": {
+        "multi": 3,
+        "magnet": 3,
+        "haste": 5,
+        "orbit": 2,
+        "speed": 1,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 12004.434166666857,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10099,
+      "kills": 357,
+      "bossDefeated": true,
+      "peakEnemies": 22,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "magnet": 2,
+        "haste": 5,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 13072.229077037186,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 9658,
+      "kills": 334,
+      "bossDefeated": true,
+      "peakEnemies": 26,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "power": 5,
+        "orbit": 4,
+        "haste": 2,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 12717.045649629725,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3595,
+      "kills": 80,
+      "bossDefeated": true,
+      "peakEnemies": 21,
+      "build": {
+        "magnet": 1,
+        "multi": 2,
+        "haste": 2,
+        "power": 2,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 3504.6120370370145,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3578,
+      "kills": 79,
+      "bossDefeated": true,
+      "peakEnemies": 23,
+      "build": {
+        "orbit": 1,
+        "multi": 3,
+        "magnet": 2,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3306.0257407407157,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3684,
+      "kills": 87,
+      "bossDefeated": true,
+      "peakEnemies": 12,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "haste": 1,
+        "power": 2,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 3306.9907407407236,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3752,
+      "kills": 86,
+      "bossDefeated": true,
+      "peakEnemies": 17,
+      "build": {
+        "multi": 3,
+        "magnet": 2,
+        "haste": 1,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3604.690370370349,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 86.25,
+      "level": 9,
+      "score": 3741,
+      "kills": 88,
+      "bossDefeated": true,
+      "peakEnemies": 13,
+      "build": {
+        "multi": 3,
+        "power": 2,
+        "haste": 3
+      },
+      "metrics": {
+        "damageDealt": 3954.755555555523,
+        "damageTaken": 13.750000000000002,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 8,
+      "score": 3498,
+      "kills": 79,
+      "bossDefeated": true,
+      "peakEnemies": 22,
+      "build": {
+        "magnet": 1,
+        "haste": 1,
+        "multi": 1,
+        "power": 3,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 3221.2092222221963,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 6,
+      "score": 2968,
+      "kills": 69,
+      "bossDefeated": false,
+      "peakEnemies": 35,
+      "build": {
+        "orbit": 1,
+        "magnet": 1,
+        "haste": 1,
+        "multi": 2
+      },
+      "metrics": {
+        "damageDealt": 2649.474999999982,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 8,
+      "score": 3284,
+      "kills": 77,
+      "bossDefeated": false,
+      "peakEnemies": 22,
+      "build": {
+        "multi": 3,
+        "haste": 1,
+        "magnet": 2,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 2936.22499999998,
+        "damageTaken": 0,
+        "dashes": 4,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 8,
+      "score": 3621,
+      "kills": 88,
+      "bossDefeated": true,
+      "peakEnemies": 14,
+      "build": {
+        "multi": 3,
+        "haste": 3,
+        "power": 1
+      },
+      "metrics": {
+        "damageDealt": 3548.0925925925744,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 8,
+      "score": 3278,
+      "kills": 74,
+      "bossDefeated": false,
+      "peakEnemies": 28,
+      "build": {
+        "multi": 1,
+        "power": 3,
+        "magnet": 1,
+        "orbit": 1,
+        "haste": 1
+      },
+      "metrics": {
+        "damageDealt": 3211.789962962935,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 7,
+      "score": 3164,
+      "kills": 72,
+      "bossDefeated": false,
+      "peakEnemies": 29,
+      "build": {
+        "magnet": 1,
+        "haste": 2,
+        "power": 1,
+        "multi": 1,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 2883.000185185161,
+        "damageTaken": 0,
+        "dashes": 6,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3596,
+      "kills": 83,
+      "bossDefeated": true,
+      "peakEnemies": 18,
+      "build": {
+        "orbit": 1,
+        "multi": 3,
+        "speed": 1,
+        "haste": 2,
+        "power": 1
+      },
+      "metrics": {
+        "damageDealt": 3555.612222222194,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3691,
+      "kills": 88,
+      "bossDefeated": true,
+      "peakEnemies": 15,
+      "build": {
+        "multi": 3,
+        "haste": 1,
+        "magnet": 2,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3381.0135185184877,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3660,
+      "kills": 85,
+      "bossDefeated": true,
+      "peakEnemies": 15,
+      "build": {
+        "multi": 3,
+        "haste": 2,
+        "magnet": 1,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3696.483518518481,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "desktop",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3782,
+      "kills": 86,
+      "bossDefeated": true,
+      "peakEnemies": 17,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "power": 2,
+        "haste": 1,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 4046.5725925925512,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10116,
+      "kills": 343,
+      "bossDefeated": true,
+      "peakEnemies": 21,
+      "build": {
+        "magnet": 2,
+        "multi": 3,
+        "orbit": 1,
+        "power": 5,
+        "haste": 4,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 13086.695676296467,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10058,
+      "kills": 344,
+      "bossDefeated": true,
+      "peakEnemies": 27,
+      "build": {
+        "orbit": 3,
+        "magnet": 2,
+        "power": 4,
+        "haste": 3,
+        "multi": 3,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 12945.826851851985,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10000,
+      "kills": 350,
+      "bossDefeated": true,
+      "peakEnemies": 24,
+      "build": {
+        "multi": 3,
+        "haste": 5,
+        "power": 5,
+        "magnet": 2,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 13219.235925926125,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10102,
+      "kills": 351,
+      "bossDefeated": true,
+      "peakEnemies": 25,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "magnet": 2,
+        "haste": 5,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 13273.08240740756,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "lantern",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 100,
+      "level": 17,
+      "score": 10023,
+      "kills": 344,
+      "bossDefeated": true,
+      "peakEnemies": 23,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "speed": 2,
+        "magnet": 2,
+        "haste": 3,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 12681.20546296311,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 17,
+      "score": 10112,
+      "kills": 351,
+      "bossDefeated": true,
+      "peakEnemies": 22,
+      "build": {
+        "magnet": 2,
+        "multi": 3,
+        "power": 5,
+        "haste": 3,
+        "orbit": 3
+      },
+      "metrics": {
+        "damageDealt": 12833.171851851985,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 16,
+      "score": 9672,
+      "kills": 341,
+      "bossDefeated": true,
+      "peakEnemies": 42,
+      "build": {
+        "orbit": 2,
+        "haste": 4,
+        "magnet": 1,
+        "power": 5,
+        "multi": 3
+      },
+      "metrics": {
+        "damageDealt": 12580.444386296407,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 17,
+      "score": 10016,
+      "kills": 338,
+      "bossDefeated": true,
+      "peakEnemies": 22,
+      "build": {
+        "multi": 3,
+        "magnet": 3,
+        "haste": 3,
+        "power": 5,
+        "orbit": 2
+      },
+      "metrics": {
+        "damageDealt": 12505.045370370506,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 17,
+      "score": 9968,
+      "kills": 349,
+      "bossDefeated": true,
+      "peakEnemies": 23,
+      "build": {
+        "multi": 3,
+        "speed": 1,
+        "power": 5,
+        "magnet": 2,
+        "haste": 3,
+        "orbit": 2
+      },
+      "metrics": {
+        "damageDealt": 13090.838645555663,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "leaf",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 110,
+      "level": 17,
+      "score": 9961,
+      "kills": 343,
+      "bossDefeated": true,
+      "peakEnemies": 21,
+      "build": {
+        "multi": 3,
+        "magnet": 2,
+        "haste": 3,
+        "power": 5,
+        "orbit": 2,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 12926.682997407574,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 9823,
+      "kills": 334,
+      "bossDefeated": true,
+      "peakEnemies": 20,
+      "build": {
+        "magnet": 1,
+        "multi": 3,
+        "orbit": 2,
+        "power": 5,
+        "haste": 4,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 12832.922131111241,
+        "damageTaken": 0,
+        "dashes": 5,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10157,
+      "kills": 351,
+      "bossDefeated": true,
+      "peakEnemies": 22,
+      "build": {
+        "orbit": 3,
+        "magnet": 2,
+        "multi": 3,
+        "power": 5,
+        "haste": 3
+      },
+      "metrics": {
+        "damageDealt": 13029.741577037155,
+        "damageTaken": 0,
+        "dashes": 4,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10032,
+      "kills": 346,
+      "bossDefeated": true,
+      "peakEnemies": 24,
+      "build": {
+        "multi": 3,
+        "power": 3,
+        "haste": 5,
+        "magnet": 1,
+        "orbit": 4
+      },
+      "metrics": {
+        "damageDealt": 13180.5621851853,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10160,
+      "kills": 360,
+      "bossDefeated": true,
+      "peakEnemies": 24,
+      "build": {
+        "multi": 3,
+        "power": 5,
+        "haste": 5,
+        "magnet": 1,
+        "orbit": 2
+      },
+      "metrics": {
+        "damageDealt": 13527.082594074207,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "night",
+      "keeper": "wind",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 180,
+      "hp": 85,
+      "level": 17,
+      "score": 10299,
+      "kills": 357,
+      "bossDefeated": true,
+      "peakEnemies": 19,
+      "build": {
+        "multi": 3,
+        "speed": 1,
+        "magnet": 2,
+        "power": 5,
+        "haste": 4,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 13213.820555555676,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 8,
+      "score": 3512,
+      "kills": 81,
+      "bossDefeated": true,
+      "peakEnemies": 21,
+      "build": {
+        "magnet": 1,
+        "haste": 1,
+        "power": 2,
+        "multi": 2,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 3381.9627777777496,
+        "damageTaken": 0,
+        "dashes": 9,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3684,
+      "kills": 87,
+      "bossDefeated": true,
+      "peakEnemies": 12,
+      "build": {
+        "orbit": 1,
+        "multi": 3,
+        "magnet": 1,
+        "power": 2,
+        "haste": 1
+      },
+      "metrics": {
+        "damageDealt": 3498.573703703683,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3695,
+      "kills": 85,
+      "bossDefeated": true,
+      "peakEnemies": 13,
+      "build": {
+        "multi": 2,
+        "power": 3,
+        "haste": 1,
+        "magnet": 1,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 3297.1297407407124,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3764,
+      "kills": 87,
+      "bossDefeated": true,
+      "peakEnemies": 15,
+      "build": {
+        "multi": 3,
+        "magnet": 2,
+        "haste": 2,
+        "power": 1
+      },
+      "metrics": {
+        "damageDealt": 3512.597407407383,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "lantern",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 100,
+      "level": 9,
+      "score": 3758,
+      "kills": 89,
+      "bossDefeated": true,
+      "peakEnemies": 11,
+      "build": {
+        "multi": 3,
+        "haste": 3,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3565.438333333313,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 96.25,
+      "level": 9,
+      "score": 3728,
+      "kills": 89,
+      "bossDefeated": true,
+      "peakEnemies": 12,
+      "build": {
+        "magnet": 1,
+        "power": 2,
+        "multi": 3,
+        "haste": 1,
+        "orbit": 1
+      },
+      "metrics": {
+        "damageDealt": 3575.883333333307,
+        "damageTaken": 13.750000000000002,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 9,
+      "score": 3781,
+      "kills": 88,
+      "bossDefeated": true,
+      "peakEnemies": 13,
+      "build": {
+        "orbit": 2,
+        "multi": 3,
+        "power": 2,
+        "magnet": 1
+      },
+      "metrics": {
+        "damageDealt": 3672.6394444444118,
+        "damageTaken": 0,
+        "dashes": 2,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 9,
+      "score": 3699,
+      "kills": 87,
+      "bossDefeated": true,
+      "peakEnemies": 12,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "orbit": 2,
+        "power": 2
+      },
+      "metrics": {
+        "damageDealt": 3273.6974074073883,
+        "damageTaken": 0,
+        "dashes": 0,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 9,
+      "score": 3769,
+      "kills": 87,
+      "bossDefeated": true,
+      "peakEnemies": 14,
+      "build": {
+        "multi": 2,
+        "magnet": 1,
+        "power": 4,
+        "speed": 1
+      },
+      "metrics": {
+        "damageDealt": 3620.048599999976,
+        "damageTaken": 0,
+        "dashes": 3,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "leaf",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 110,
+      "level": 9,
+      "score": 3802,
+      "kills": 91,
+      "bossDefeated": true,
+      "peakEnemies": 12,
+      "build": {
+        "multi": 3,
+        "haste": 2,
+        "power": 3
+      },
+      "metrics": {
+        "damageDealt": 3978.051333333305,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 42,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 7,
+      "score": 3138,
+      "kills": 69,
+      "bossDefeated": false,
+      "peakEnemies": 32,
+      "build": {
+        "magnet": 2,
+        "haste": 1,
+        "power": 3
+      },
+      "metrics": {
+        "damageDealt": 2485.7630370370216,
+        "damageTaken": 0,
+        "dashes": 10,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 84,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3717,
+      "kills": 86,
+      "bossDefeated": true,
+      "peakEnemies": 14,
+      "build": {
+        "orbit": 2,
+        "multi": 3,
+        "magnet": 1,
+        "power": 1,
+        "haste": 1
+      },
+      "metrics": {
+        "damageDealt": 3675.112777777738,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 20261121,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3788,
+      "kills": 89,
+      "bossDefeated": true,
+      "peakEnemies": 14,
+      "build": {
+        "multi": 3,
+        "power": 2,
+        "haste": 2,
+        "magnet": 1
+      },
+      "metrics": {
+        "damageDealt": 3577.7577777777433,
+        "damageTaken": 0,
+        "dashes": 1,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 271828,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 8,
+      "score": 3598,
+      "kills": 84,
+      "bossDefeated": true,
+      "peakEnemies": 18,
+      "build": {
+        "multi": 3,
+        "haste": 2,
+        "orbit": 1,
+        "magnet": 1
+      },
+      "metrics": {
+        "damageDealt": 3404.3162962962715,
+        "damageTaken": 0,
+        "dashes": 8,
+        "healed": 0
+      }
+    },
+    {
+      "viewport": "mobile",
+      "mode": "practice",
+      "keeper": "wind",
+      "seed": 314159,
+      "status": "won",
+      "elapsed": 90,
+      "hp": 85,
+      "level": 9,
+      "score": 3813,
+      "kills": 89,
+      "bossDefeated": true,
+      "peakEnemies": 13,
+      "build": {
+        "multi": 3,
+        "magnet": 1,
+        "orbit": 3,
+        "power": 1
+      },
+      "metrics": {
+        "damageDealt": 3851.146481481437,
+        "damageTaken": 0,
+        "dashes": 7,
+        "healed": 0
+      }
+    }
+  ]
+}

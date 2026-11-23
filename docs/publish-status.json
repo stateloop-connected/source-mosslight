@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-22",
+  "date": "2026-11-23",
   "github": {
     "url": "https://github.com/yunhanhai/mosslight",
     "repository_created": true,
     "pushed": true,
     "public": true,
     "anonymous_api_http": 200,
-    "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.3.0"
+    "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.4.0"
   },
   "gitee": {
     "url": "https://gitee.com/yunhanhai/mosslight",
@@ -24,26 +24,26 @@
     "http": 200,
     "workflow_result": "success",
     "workflow_attempt": 1,
-    "desktop_and_mobile_browser_checks": "v1.3.0 passed",
-    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/44923400218"
+    "desktop_and_mobile_browser_checks": "v1.4.0 passed",
+    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/45207021442"
   },
-  "code_revision": "624f94bf718cc81ae869cef07af323f30be53df4",
+  "code_revision": "e4341c37619d849bd1b0c89ed39c481bea082dc1",
   "checks": {
     "github_actions": "success",
-    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/44923400171",
-    "unit_and_build_tests": 48,
-    "browser_tests_passed": 49,
+    "workflow_url": "https://github.com/yunhanhai/mosslight/actions/runs/45207021552",
+    "unit_and_build_tests": 62,
+    "browser_tests_passed": 57,
     "browser_tests_skipped": 3
   },
   "previous_release": {
-    "version": "1.2.0",
-    "code_revision": "8ecbc38e1c7a78acf29c76d1dec74de7097d9976",
-    "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.2.0",
-    "tag_commit": "9c86a3849df6473603112aa237e2c1741a058255"
+    "version": "1.3.0",
+    "code_revision": "624f94bf718cc81ae869cef07af323f30be53df4",
+    "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.3.0",
+    "tag_commit": "efd939aba4c56653a89d389aa4fe43987d6fbd5a"
   },
-  "version": "1.3.0",
+  "version": "1.4.0",
   "workflow_revision": "8e154cecd8b116bba4c711074d93d2e62f46b55b",
-  "online_verification": "online-verification-v1.3.json",
+  "online_verification": "online-verification-v1.4.json",
   "release_history": [
     {
       "version": "1.0.0",
@@ -61,7 +61,14 @@
       "code_revision": "8ecbc38e1c7a78acf29c76d1dec74de7097d9976",
       "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.2.0",
       "tag_commit": "9c86a3849df6473603112aa237e2c1741a058255"
+    },
+    {
+      "version": "1.3.0",
+      "code_revision": "624f94bf718cc81ae869cef07af323f30be53df4",
+      "release_url": "https://github.com/yunhanhai/mosslight/releases/tag/v1.3.0",
+      "tag_commit": "efd939aba4c56653a89d389aa4fe43987d6fbd5a"
     }
   ],
-  "layout_verification": "layout-verification-v1.3.json"
+  "layout_verification": "layout-verification-v1.4.json",
+  "simulation": "simulation-v1.4.json"
 }
