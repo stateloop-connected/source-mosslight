@@ -1,0 +1,14 @@
+{
+  "build_script": "node scripts/build.mjs",
+  "gameplay_or_asset_changes": false,
+  "lockfile": "package-lock.json",
+  "mode": "native_source_build",
+  "repository": "yunhanhai/mosslight",
+  "schema_version": 1,
+  "source_changes": [
+    ".packaging/plan.json"
+  ],
+  "status": "ready",
+  "upstream_code_executed_locally": false,
+  "upstream_sha": "515641aa5aa3b3b19b6f0beb365baba0299eb379"
+}
